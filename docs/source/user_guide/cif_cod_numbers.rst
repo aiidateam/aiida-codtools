@@ -1,5 +1,5 @@
-codtools.cifcodnumbers
-++++++++++++++++++++++
+codtools.cif_cod_numbers
+++++++++++++++++++++++++
 
 Description
 -----------
@@ -16,7 +16,7 @@ Inputs
 * :py:class:`ParameterData <aiida.orm.data.parameter.ParameterData>` (optional)
     Contains the command line parameters, specified in key-value fashion.
     For more information refer to
-    :ref:`inputs for codtools.ciffilter plugin<codtools_ciffilter_inputs>`.
+    :ref:`inputs for codtools.cif_base plugin<codtools_cif_base_inputs>`.
 
 Outputs
 -------

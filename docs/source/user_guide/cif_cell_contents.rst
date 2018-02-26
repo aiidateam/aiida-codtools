@@ -1,5 +1,5 @@
-codtools.cifcellcontents
-++++++++++++++++++++++++
+codtools.cif_cell_contents
+++++++++++++++++++++++++++
 
 Description
 -----------
@@ -16,8 +16,7 @@ Inputs
     A CIF file.
 * :py:class:`ParameterData <aiida.orm.data.parameter.ParameterData>` (optional)
     Contains the command line parameters, specified in key-value fashion.
-    For more information refer to
-    :ref:`inputs for codtools.ciffilter plugin<codtools_ciffilter_inputs>`.
+    For more information refer to :ref:`inputs for codtools.cif_base plugin<codtools_cif_base_inputs>`.
 
 Outputs
 -------
@@ -43,7 +42,7 @@ Outputs
 * :py:class:`ParameterData <aiida.orm.data.parameter.ParameterData>`
     Contains lines of output messages and/or errors. For more information
     refer to
-    :ref:`outputs for codtools.ciffilter plugin<codtools_ciffilter_outputs>`.
+    :ref:`outputs for codtools.cif_base plugin<codtools_cif_base_outputs>`.
 
 Errors
 ------

@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
-from aiida_codtools.parsers.ciffilter import CiffilterParser
-from aiida_codtools.calculations.cifcoddeposit import CifcoddepositCalculation
+import re
 from aiida.common.extendeddicts import Enumerate
+from aiida.orm.data.parameter import ParameterData
+from aiida_codtools.parsers.cif_base import CifBaseParser
+from aiida_codtools.calculations.cif_cod_deposit import CifCodDepositCalculation
 
-class CoddepositionState(Enumerate):
+
+class CodDepositionState(Enumerate):
     pass
 
 
-cod_deposition_states = CoddepositionState((
+cod_deposition_states = CodDepositionState((
     'SUCCESS',  # Structures are deposited/updated successfully
     'DUPLICATE',  # Structures are found to be already in the database
     'UNCHANGED',  # Structures are not updated (nothing to update)
@@ -17,25 +20,19 @@ cod_deposition_states = CoddepositionState((
 ))
 
 
-class CifcoddepositParser(CiffilterParser):
+class CifCodDepositParser(CiffilterParser):
     """
     Specific parser for the output of cif_cod_deposit script.
     """
 
     def __init__(self, calc):
-        """
-        Initialize the instance of CiffilterParser
-        """
-        self._supported_calculation_class = CifcoddepositCalculation
-        super(CifcoddepositParser, self).__init__(calc)
+        self._supported_calculation_class = CifCodDepositCalculation
+        super(CifCodDepositParser, self).__init__(calc)
 
     def _get_output_nodes(self, output_path, error_path):
         """
-        Extracts output nodes from the standard output and standard error
-        files.
+        Extracts output nodes from the standard output and standard error files
         """
-        from aiida.orm.data.parameter import ParameterData
-
         status = cod_deposition_states.UNKNOWN
         messages = []
 
@@ -43,8 +40,8 @@ class CifcoddepositParser(CiffilterParser):
             content = None
             with open(output_path) as f:
                 content = f.read()
-            status, message = CifcoddepositParser._deposit_result(content)
-            messages.extend(message.split("\n"))
+            status, message = CifCodDepositParser._deposit_result(content)
+            messages.extend(message.split('\n'))
 
         if error_path is not None:
             with open(error_path) as f:
@@ -52,11 +49,13 @@ class CifcoddepositParser(CiffilterParser):
             lines = [x.strip('\n') for x in content]
             messages.extend(lines)
 
+        parameters = {
+            'output_messages': messages,
+            'status': status
+        }
+
         output_nodes = []
-        output_nodes.append(('messages',
-                             ParameterData(dict={'output_messages':
-                                                     messages,
-                                                 'status': status})))
+        output_nodes.append(('messages', ParameterData(dict=parameters)))
 
         if status == cod_deposition_states.SUCCESS:
             return True, output_nodes
@@ -65,7 +64,6 @@ class CifcoddepositParser(CiffilterParser):
 
     @classmethod
     def _deposit_result(cls, output):
-        import re
 
         status = cod_deposition_states.UNKNOWN
         message = ''
@@ -73,14 +71,10 @@ class CifcoddepositParser(CiffilterParser):
         output = re.sub('^[^:]*cif-deposit\.pl:\s+', '', output)
         output = re.sub('\n$', '', output)
 
-        dep = re.search('^(structures .+ were successfully deposited '
-                        'into .?COD)$', output)
-        dup = re.search('^(the following structures seem to be already '
-                        'in .?COD):', output, re.IGNORECASE)
-        red = re.search('^(redeposition of structure is unnecessary)',
-                        output)
-        lgn = re.search('<p class="error"[^>]*>[^:]+: (.*)',
-                        output, re.IGNORECASE)
+        dep = re.search('^(structures .+ were successfully deposited into .?COD)$', output)
+        dup = re.search('^(the following structures seem to be already in .?COD):', output, re.IGNORECASE)
+        red = re.search('^(redeposition of structure is unnecessary)', output)
+        lgn = re.search('<p class="error"[^>]*>[^:]+: (.*)', output, re.IGNORECASE)
 
         if dep is not None:
             status = cod_deposition_states.SUCCESS

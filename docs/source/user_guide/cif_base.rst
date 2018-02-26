@@ -1,5 +1,5 @@
-codtools.ciffilter
-++++++++++++++++++
+codtools.cif_base
++++++++++++++++++
 
 Description
 -----------
@@ -30,7 +30,7 @@ Supported codes
 * cif_set_value
 * cif_symop_apply
 
-.. _codtools_ciffilter_inputs:
+.. _codtools_cif_base_inputs:
 
 Inputs
 ------
@@ -65,7 +65,7 @@ Inputs
       metacharacters are performed by the plugin. AiiDA encloses each
       command line argument with single quotes and that's being relied on.
 
-.. _codtools_ciffilter_outputs:
+.. _codtools_cif_base_outputs:
 
 Outputs
 -------

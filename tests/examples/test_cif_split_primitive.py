@@ -16,9 +16,9 @@ import os
 from aiida.common.example_helpers import test_and_get_code
 
 ################################################################
-# Test for cif_filter script from cod-tools package.
+# Test for cif_split_primitive script from cod-tools package.
 # Input plugin: codtools
-# Accepted codes: cif_filter
+# Accepted codes: cif_split_primitive
 ################################################################
 
 CifData = DataFactory('cif')
@@ -51,7 +51,7 @@ while len(sys.argv) > 0:
     else:
         files.append(arg)
 
-code = test_and_get_code(codename, expected_code_type="codtools.cifsplitprimitive")
+code = test_and_get_code(codename, expected_code_type="codtools.cif_split_primitive")
 
 cif = None
 if len(files) == 1:

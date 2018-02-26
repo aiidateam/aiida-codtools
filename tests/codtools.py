@@ -7,29 +7,26 @@
 # For further information on the license, see the LICENSE.txt file        #
 # For further information please visit http://www.aiida.net               #
 ###########################################################################
-"""
-Tests for the codtools input plugins.
-"""
 import tempfile
 import unittest
-from aiida.common.folders import SandboxFolder
-from aiida.orm.data.cif import CifData
-from aiida.orm.data.parameter import ParameterData
-from aiida.common.exceptions import FeatureNotAvailable
-from aiida_codtools.calculations.cifcellcontents import CifcellcontentsCalculation
-from aiida_codtools.calculations.cifcodcheck import CifcodcheckCalculation
-from aiida_codtools.calculations.ciffilter import CiffilterCalculation
-from aiida_codtools.parsers.cifcellcontents import CifcellcontentsParser
-from aiida_codtools.parsers.cifcodcheck import CifcodcheckParser
-from aiida_codtools.parsers.ciffilter import CiffilterParser
 from aiida.backends.testbase import AiidaTestCase
-
+from aiida.common.exceptions import FeatureNotAvailable, PluginInternalError
+from aiida.common.folders import SandboxFolder
+from aiida.orm.data.cif import CifData, has_pycifrw
+from aiida.orm.data.parameter import ParameterData
+from aiida_codtools.calculations import commandline_params_from_dict
+from aiida_codtools.calculations.cif_base import CifBaseCalculation
+from aiida_codtools.calculations.cif_cell_contents import CifCellContentsCalculation
+from aiida_codtools.calculations.cif_cod_check import CifCodCheckCalculation
+from aiida_codtools.parsers.cif_base import CifBaseParser
+from aiida_codtools.parsers.cif_cell_contents import CifCellContentsParser
+from aiida_codtools.parsers.cif_cod_check import CifCodCheckParser
+from aiida_codtools.parsers.cif_cod_deposit import CifCodDepositParser
 
 
 class TestCodtools(AiidaTestCase):
-    from aiida.orm.data.cif import has_pycifrw
 
-    @unittest.skipIf(not has_pycifrw(), "Unable to import PyCifRW")
+    @unittest.skipIf(not has_pycifrw(), 'Unable to import PyCifRW')
     def test_1(self):
         stdout_messages = ["data_test _cell_length_a 10(1)"]
         stderr_messages = []
@@ -46,7 +43,7 @@ class TestCodtools(AiidaTestCase):
             ef.write("\n".join(stderr_messages))
             ef.flush()
 
-        parser = CiffilterParser(CiffilterCalculation())
+        parser = CifBaseParser(CifBaseCalculation())
         success, nodes = parser._get_output_nodes(stdout_file, stderr_file)
 
         self.assertEquals(success, True)
@@ -58,7 +55,7 @@ class TestCodtools(AiidaTestCase):
         self.assertEquals(nodes[1][0], 'messages')
         self.assertEquals(len(nodes[1][1].get_dict()['output_messages']), 0)
 
-    @unittest.skipIf(not has_pycifrw(), "Unable to import PyCifRW")
+    @unittest.skipIf(not has_pycifrw(), 'Unable to import PyCifRW')
     def test_2(self):
         stdout_messages = ["data_test _cell_length_a 10(1)"]
         stderr_messages = ["first line", "last line"]
@@ -75,7 +72,7 @@ class TestCodtools(AiidaTestCase):
             ef.write("\n".join(stderr_messages))
             ef.flush()
 
-        parser = CiffilterParser(CiffilterCalculation())
+        parser = CifBaseParser(CifBaseCalculation())
         success, nodes = parser._get_output_nodes(stdout_file, stderr_file)
 
         self.assertEquals(success, True)
@@ -104,7 +101,7 @@ class TestCodtools(AiidaTestCase):
             ef.write("\n".join(stderr_messages))
             ef.flush()
 
-        parser = CifcodcheckParser(CifcodcheckCalculation())
+        parser = CifCodCheckParser(CifCodCheckCalculation())
         success, nodes = parser._get_output_nodes(stdout_file, stderr_file)
 
         self.assertEquals(success, True)
@@ -115,8 +112,6 @@ class TestCodtools(AiidaTestCase):
                           stdout_messages + stderr_messages)
 
     def test_4(self):
-        from aiida_codtools.parsers.cifcellcontents import CifcellcontentsParser
-
         stdout = '''4000000	C26 H26 Fe
 4000001	C24 H17 F5 Fe
 4000002	C24 H17 F5 Fe
@@ -141,7 +136,7 @@ class TestCodtools(AiidaTestCase):
             ef.write(stderr)
             ef.flush()
 
-        parser = CifcellcontentsParser(CifcellcontentsCalculation())
+        parser = CifCellContentsParser(CifCellContentsCalculation())
         _, output_nodes = parser._get_output_nodes(stdout_file, stderr_file)
         self.assertEquals(output_nodes[0][1].get_dict(), {
             'formulae': {
@@ -157,8 +152,6 @@ class TestCodtools(AiidaTestCase):
                 '4000008': 'C2 H10 F Mn N2 O9 V3'}})
 
     def test_5(self):
-        from aiida_codtools.parsers.cifcoddeposit import CifcoddepositParser
-
         content = \
             """<!DOCTYPE html
                 PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -175,7 +168,7 @@ class TestCodtools(AiidaTestCase):
             </body>
             </html>
             """
-        status, message = CifcoddepositParser._deposit_result(content)
+        status, message = CifCodDepositParser._deposit_result(content)
         self.assertEquals(status, 'INPUTERROR')
         self.assertEquals(message, 'password \'password\' value from the '
                                    'upload form contains unallowed '
@@ -187,7 +180,7 @@ class TestCodtools(AiidaTestCase):
             Will not deposit the structure(s) once more.
             """
 
-        status, message = CifcoddepositParser._deposit_result(content)
+        status, message = CifCodDepositParser._deposit_result(content)
         self.assertEquals(status, 'DUPLICATE')
         self.assertEquals(message, 'The following structures seem to be '
                                    'already in COD')
@@ -195,7 +188,7 @@ class TestCodtools(AiidaTestCase):
         content = \
             """cif-deposit.pl: upload from variable 'username' value '' contains unallowed characters (not in '[a-zA-Z0-9 ,.-'_()\\x{0080}-\\x{7FFFFFFF}]+')"""
 
-        status, message = CifcoddepositParser._deposit_result(content)
+        status, message = CifCodDepositParser._deposit_result(content)
         self.assertEquals(status, 'INPUTERROR')
         self.assertEquals(message, 'upload from variable \'username\' '
                                    'value \'\' contains unallowed characters '
@@ -206,7 +199,7 @@ class TestCodtools(AiidaTestCase):
 cif_cod_check: - data_4000000: neither _journal_page_first nor _journal_article_reference is defined
 cif_cod_check: - data_4000001: _publ_section_title is undefined"""
 
-        status, message = CifcoddepositParser._deposit_result(content)
+        status, message = CifCodDepositParser._deposit_result(content)
         self.assertEquals(status, 'INPUTERROR')
         self.assertEquals(message, 'cif_cod_check: - data_4000000: '
                                    '_publ_section_title is undefined\n'
@@ -219,15 +212,12 @@ cif_cod_check: - data_4000001: _publ_section_title is undefined"""
         content = \
             """cif-deposit.pl: structures 4300539 were successfully deposited into COD"""
 
-        status, message = CifcoddepositParser._deposit_result(content)
+        status, message = CifCodDepositParser._deposit_result(content)
         self.assertEquals(status, 'SUCCESS')
         self.assertEquals(message, 'structures 4300539 were successfully '
                                    'deposited into COD')
 
     def test_perl_error_detection(self):
-        from aiida_codtools.parsers.cifcellcontents import CifcellcontentsParser
-        from aiida.common.exceptions import PluginInternalError
-
         stdout = "4000000	C26 H26 Fe\n"
 
         stderr_1 = "Can't locate CIFSymmetryGenerator.pm in @INC (@INC contains: .) at cif_molecule line 61."
@@ -249,15 +239,13 @@ cif_cod_check: - data_4000001: _publ_section_title is undefined"""
             ef.write(stderr_2)
             ef.flush()
 
-        parser = CifcellcontentsParser(CifcellcontentsCalculation())
+        parser = CifCellContentsParser(CifCellContentsCalculation())
         with self.assertRaises(PluginInternalError):
             parser._get_output_nodes(stdout_file, stderr_1_file)
         with self.assertRaises(PluginInternalError):
             parser._get_output_nodes(stdout_file, stderr_2_file)
 
     def test_cmdline_generation(self):
-        from aiida_codtools.calculations import commandline_params_from_dict
-
         dictionary = {
             'start-data-block-number': '1234567',
             'extra-tag-list': ['cod.lst', 'tcod.lst'],
@@ -273,7 +261,7 @@ cif_cod_check: - data_4000001: _publ_section_title is undefined"""
                            '--start-data-block-number', '1234567'])
 
     def test_resource_validation(self):
-        calc = CiffilterCalculation()
+        calc = CifBaseCalculation()
         calc.use_cif(CifData())
 
         for key in ['num_machines', 'num_mpiprocs_per_machine',
@@ -288,7 +276,7 @@ cif_cod_check: - data_4000001: _publ_section_title is undefined"""
 
             calc.set_resources({key: 1})
 
-    @unittest.skipIf(not has_pycifrw(), "Unable to import PyCifRW")
+    @unittest.skipIf(not has_pycifrw(), 'Unable to import PyCifRW')
     def test_status_assertion(self):
         nonempty = tempfile.NamedTemporaryFile()
         nonempty.write('data_test _tag value')
@@ -298,8 +286,8 @@ cif_cod_check: - data_4000001: _publ_section_title is undefined"""
         empty.write('')
         empty.flush()
 
-        calc = CiffilterCalculation()
-        parser = CiffilterParser(calc)
+        calc = CifBaseCalculation()
+        parser = CifBaseParser(calc)
 
         status, nodes = parser._get_output_nodes(nonempty.name, empty.name)
         self.assertEquals(status, True)
@@ -307,8 +295,8 @@ cif_cod_check: - data_4000001: _publ_section_title is undefined"""
         status, nodes = parser._get_output_nodes(empty.name, nonempty.name)
         self.assertEquals(status, False)
 
-        calc = CifcellcontentsCalculation()
-        parser = CifcellcontentsParser(calc)
+        calc = CifCellContentsCalculation()
+        parser = CifCellContentsParser(calc)
 
         status, nodes = parser._get_output_nodes(nonempty.name, empty.name)
         self.assertEquals(status, True)

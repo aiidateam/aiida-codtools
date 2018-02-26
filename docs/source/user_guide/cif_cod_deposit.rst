@@ -1,7 +1,7 @@
-.. _codtools_cifcoddeposit:
+.. _codtools_cif_cod_deposit:
 
-codtools.cifcoddeposit
-++++++++++++++++++++++
+codtools.cif_cod_deposit
+++++++++++++++++++++++++
 
 Description
 -----------
@@ -51,7 +51,7 @@ Outputs
 
   * ``output_messages``: lines of output messages and/or errors. For
     more information refer to
-    :ref:`outputs for codtools.ciffilter plugin<codtools_ciffilter_outputs>`.
+    :ref:`outputs for codtools.cif_base plugin<codtools_cif_base_outputs>`.
   * ``status``: a string, one of the following:
 
     * ``SUCCESS``: a deposition is successful, newly assigned \*COD

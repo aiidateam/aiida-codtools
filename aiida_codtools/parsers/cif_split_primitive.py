@@ -1,33 +1,29 @@
 # -*- coding: utf-8 -*-
-from aiida_codtools.parsers.baseclass import BaseCodtoolsParser
-from aiida_codtools.calculations.cifsplitprimitive import CifsplitprimitiveCalculation
+import os
+from aiida.orm.data.cif import CifData
+from aiida.orm.data.parameter import ParameterData
+from aiida_codtools.parsers import BaseCodtoolsParser
+from aiida_codtools.calculations.cif_split_primitive import CifSplitPrimitiveCalculation
 
-class CifsplitprimitiveParser(BaseCodtoolsParser):
+
+class CifSplitPrimitiveParser(BaseCodtoolsParser):
     """
-    Specific parser for the output of cif_split_primitive script.
+    Specific parser plugin for cif_split_primitive from cod-tools package
     """
 
     def __init__(self, calc):
-        """
-        Initialize the instance of CifsplitprimitiveParser
-        """
-        # Check for valid input:
-        self._supported_calculation_class = CifsplitprimitiveCalculation
-        super(CifsplitprimitiveParser, self).__init__(calc)
+        self._supported_calculation_class = CifSplitPrimitiveCalculation
+        super(CifSplitPrimitiveParser, self).__init__(calc)
 
     def _get_output_nodes(self, output_path, error_path):
         """
-        Extracts output nodes from the standard output and standard error
-        files.
+        Extracts output nodes from the standard output and standard error files
         """
-        from aiida.orm.data.cif import CifData
-        from aiida.orm.data.parameter import ParameterData
-        import os
-
         out_folder = self._calc.get_retrieved_node()
 
         output_nodes = []
         success = False
+
         if error_path is not None:
             with open(error_path) as f:
                 content = f.readlines()
@@ -43,8 +39,11 @@ class CifsplitprimitiveParser(BaseCodtoolsParser):
             with open(output_path) as f:
                 content = f.readlines()
             content = [x.strip('\n') for x in content]
-            output_nodes.append(('messages',
-                                 ParameterData(dict={'output_messages':
-                                                         content})))
+
+            messages = {
+                'output_messages': content
+            }
+
+            output_nodes.append(('messages', ParameterData(dict=messages)))
 
         return success, output_nodes

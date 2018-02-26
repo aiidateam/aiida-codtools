@@ -2,46 +2,44 @@
 Calculations
 ============
 
-cifcellcontents plugin
-++++++++++++++++++++++
+cif_base plugin
++++++++++++++++
 
-.. automodule:: aiida_codtools.calculations.cifcellcontents
+.. automodule:: aiida_codtools.calculations.cif_base
    :members:
    :private-members:
 
-cifcodcheck plugin
-++++++++++++++++++
-
-.. automodule:: aiida_codtools.calculations.cifcodcheck
-   :members:
-   :private-members:
-
-cifcoddeposit plugin
-++++++++++++++++++++
-
-.. automodule:: aiida_codtools.calculations.cifcoddeposit
-   :members:
-   :private-members:
-
-cifcodnumbers plugin
-++++++++++++++++++++
-
-.. automodule:: aiida_codtools.calculations.cifcodnumbers
-   :members:
-   :private-members:
-
-ciffilter plugin
-++++++++++++++++
-
-.. automodule:: aiida_codtools.calculations.ciffilter
-   :members:
-   :private-members:
-
-cifsplitprimitive plugin
+cif_cell_contents plugin
 ++++++++++++++++++++++++
 
-.. automodule:: aiida_codtools.calculations.cifsplitprimitive
+.. automodule:: aiida_codtools.calculations.cif_cell_contents
    :members:
    :private-members:
 
-.. Add here any other module you might have
+cif_cod_check plugin
+++++++++++++++++++++
+
+.. automodule:: aiida_codtools.calculations.cif_cod_check
+   :members:
+   :private-members:
+
+cif_cod_deposit plugin
+++++++++++++++++++++++
+
+.. automodule:: aiida_codtools.calculations.cif_cod_deposit
+   :members:
+   :private-members:
+
+cif_cod_numbers plugin
+++++++++++++++++++++++
+
+.. automodule:: aiida_codtools.calculations.cif_cod_numbers
+   :members:
+   :private-members:
+
+cif_split_primitive plugin
+++++++++++++++++++++++++++
+
+.. automodule:: aiida_codtools.calculations.cif_split_primitive
+   :members:
+   :private-members:

@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
-from aiida_codtools.calculations.ciffilter import CiffilterCalculation
+from aiida_codtools.calculations.cif_base import CifBaseCalculation
 from aiida.common.datastructures import CalcInfo, CodeInfo
 from aiida.common.exceptions import InputValidationError
 
-class CifcoddepositCalculation(CiffilterCalculation):
+
+class CifCodDepositCalculation(CifBaseCalculation):
     """
-    Specific input plugin for cif_cod_deposit from cod-tools package.
+    Specific input plugin for cif_cod_deposit from cod-tools package
     """
 
     def _init_internal_params(self):
-        super(CifcoddepositCalculation, self)._init_internal_params()
+        super(CifCodDepositCalculation, self)._init_internal_params()
 
-        self._default_parser = 'codtools.cifcoddeposit'
+        self._default_parser = 'codtools.cif_cod_deposit'
         self._CONFIG_FILE = 'config.conf'
-        default_url = \
-            'http://test.crystallography.net/cgi-bin/cif-deposit.pl'
+        default_url = 'http://test.crystallography.net/cgi-bin/cif-deposit.pl'
         self._default_commandline_params = ['--use-rm',
                                             '--read-stdin',
                                             '--output-mode', 'stdout',

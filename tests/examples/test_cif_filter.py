@@ -53,7 +53,7 @@ while len(sys.argv) > 0:
     else:
         files.append(arg)
 
-code = test_and_get_code(codename, expected_code_type="codtools.ciffilter")
+code = test_and_get_code(codename, expected_code_type="codtools.cif_filter")
 
 cif = None
 if len(files) == 1:

@@ -1,28 +1,23 @@
 # -*- coding: utf-8 -*-
-from aiida_codtools.parsers.baseclass import BaseCodtoolsParser
-from aiida_codtools.calculations.cifcodnumbers import CifcodnumbersCalculation
+import re
+from aiida.orm.data.parameter import ParameterData
+from aiida_codtools.parsers import BaseCodtoolsParser
+from aiida_codtools.calculations.cif_cod_numbers import CifCodNumbersCalculation
 
-class CifcodnumbersParser(BaseCodtoolsParser):
+
+class CifCodNumbersParser(BaseCodtoolsParser):
     """
-    Specific parser for the output of cif_cod_numbers script.
+    Specific parser plugin for cif_cod_numbers from cod-tools package
     """
 
     def __init__(self, calc):
-        """
-        Initialize the instance of CifcodnumbersParser
-        """
-        # Check for valid input:
-        self._supported_calculation_class = CifcodnumbersCalculation
-        super(CifcodnumbersParser, self).__init__(calc)
+        self._supported_calculation_class = CifCodNumbersCalculation
+        super(CifCodNumbersParser, self).__init__(calc)
 
     def _get_output_nodes(self, output_path, error_path):
         """
-        Extracts output nodes from the standard output and standard error
-        files.
+        Extracts output nodes from the standard output and standard error files
         """
-        from aiida.orm.data.parameter import ParameterData
-        import re
-
         duplicates = []
         if output_path is not None:
             with open(output_path) as f:
@@ -50,8 +45,12 @@ class CifcodnumbersParser(BaseCodtoolsParser):
             self._check_failed(lines)
             errors.extend(lines)
 
+        parameters = {
+            'duplicates': duplicates,
+            'errors': errors
+        }
+
         output_nodes = []
-        output_nodes.append(('output',
-                             ParameterData(dict={'duplicates': duplicates,
-                                                 'errors': errors})))
+        output_nodes.append(('output', ParameterData(dict=parameters)))
+
         return True, output_nodes

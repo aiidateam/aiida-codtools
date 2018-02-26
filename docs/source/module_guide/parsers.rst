@@ -2,53 +2,51 @@
 Parsers
 =======
 
-baseclass parser plugin
-+++++++++++++++++++++++
+base parser class
++++++++++++++++++
 
-.. automodule:: aiida_codtools.parsers.baseclass
+.. automodule:: aiida_codtools.parsers
    :members:
    :private-members:
 
-cifcellcontents parser plugin
-+++++++++++++++++++++++++++++
+cif_base parser plugin
+++++++++++++++++++++++
 
-.. automodule:: aiida_codtools.parsers.cifcellcontents
+.. automodule:: aiida_codtools.parsers.cif_base
    :members:
    :private-members:
 
-cifcodcheck parser plugin
-+++++++++++++++++++++++++
-
-.. automodule:: aiida_codtools.parsers.cifcodcheck
-   :members:
-   :private-members:
-
-cifcoddeposit parser plugin
-+++++++++++++++++++++++++++
-
-.. automodule:: aiida_codtools.parsers.cifcoddeposit
-   :members:
-   :private-members:
-
-cifcodnumbers parser plugin
-+++++++++++++++++++++++++++
-
-.. automodule:: aiida_codtools.parsers.cifcodnumbers
-   :members:
-   :private-members:
-
-ciffilter parser plugin
-+++++++++++++++++++++++
-
-.. automodule:: aiida_codtools.parsers.ciffilter
-   :members:
-   :private-members:
-
-cifsplitprimitive parser plugin
+cif_cell_contents parser plugin
 +++++++++++++++++++++++++++++++
 
-.. automodule:: aiida_codtools.parsers.cifsplitprimitive
+.. automodule:: aiida_codtools.parsers.cif_cell_contents
    :members:
    :private-members:
 
-.. Add here any other module you might have
+cif_cod_check parser plugin
++++++++++++++++++++++++++++
+
+.. automodule:: aiida_codtools.parsers.cif_cod_check
+   :members:
+   :private-members:
+
+cif_cod_deposit parser plugin
++++++++++++++++++++++++++++++
+
+.. automodule:: aiida_codtools.parsers.cif_cod_deposit
+   :members:
+   :private-members:
+
+cif_cod_numbers parser plugin
++++++++++++++++++++++++++++++
+
+.. automodule:: aiida_codtools.parsers.cif_cod_numbers
+   :members:
+   :private-members:
+
+cif_split_primitive parser plugin
++++++++++++++++++++++++++++++++++
+
+.. automodule:: aiida_codtools.parsers.cif_split_primitive
+   :members:
+   :private-members:

@@ -57,7 +57,7 @@ if __name__ == "__main__":
         else:
             files.append(arg)
 
-    expected_code_type = "codtools.cifcoddeposit"
+    expected_code_type = "codtools.cif_cod_deposit"
 
     try:
         if codename is None:

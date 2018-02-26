@@ -6,23 +6,25 @@
         "Programming Language :: Python :: 2.7",
         "Development Status :: 4 - Beta"
     ],
-    "description": "The official AiiDA plugin for COD tools",
+    "description": "The official AiiDA plugin for cod-tools",
     "entry_points": {
         "aiida.calculations": [
-            "codtools.ciffilter = aiida_codtools.calculations.ciffilter:CiffilterCalculation",
-            "codtools.cifcellcontents = aiida_codtools.calculations.cifcellcontents:CifcellcontentsCalculation",
-            "codtools.cifcodcheck = aiida_codtools.calculations.cifcodcheck:CifcodcheckCalculation",
-            "codtools.cifcoddeposit = aiida_codtools.calculations.cifcoddeposit:CifcoddepositCalculation",
-            "codtools.cifcodnumbers = aiida_codtools.calculations.cifcodnumbers:CifcodnumbersCalculation",
-            "codtools.cifsplitprimitive = aiida_codtools.calculations.cifsplitprimitive:CifsplitprimitiveCalculation"
+            "codtools.cif_base = aiida_codtools.calculations.cif_base:CifBaseCalculation",
+            "codtools.cif_cell_contents = aiida_codtools.calculations.cif_cell_contents:CifCellContentsCalculation",
+            "codtools.cif_cod_check = aiida_codtools.calculations.cif_cod_check:CifCodCheckCalculation",
+            "codtools.cif_cod_deposit = aiida_codtools.calculations.cif_cod_deposit:CifCodDepositCalculation",
+            "codtools.cif_cod_numbers = aiida_codtools.calculations.cif_cod_numbers:CifCodNumbersCalculation",
+            "codtools.cif_filter = aiida_codtools.calculations.cif_filter:CifFilterCalculation",
+            "codtools.cif_select = aiida_codtools.calculations.cif_select:CifSelectCalculation",
+            "codtools.cif_split_primitive = aiida_codtools.calculations.cif_split_primitive:CifSplitPrimitiveCalculation"
         ],
         "aiida.parsers": [
-            "codtools.cifcellcontents = aiida_codtools.parsers.cifcellcontents:CifcellcontentsParser",
-            "codtools.cifcodcheck = aiida_codtools.parsers.cifcodcheck:CifcodcheckParser",
-            "codtools.cifcoddeposit = aiida_codtools.parsers.cifcoddeposit:CifcoddepositParser",
-            "codtools.cifcodnumbers = aiida_codtools.parsers.cifcodnumbers:CifcodnumbersParser",
-            "codtools.ciffilter = aiida_codtools.parsers.ciffilter:CiffilterParser",
-            "codtools.cifsplitprimitive = aiida_codtools.parsers.cifsplitprimitive:CifsplitprimitiveParser"
+            "codtools.cif_base = aiida_codtools.parsers.cif_base:CifBaseParser",
+            "codtools.cif_cell_contents = aiida_codtools.parsers.cif_cell_contents:CifCellContentsParser",
+            "codtools.cif_cod_check = aiida_codtools.parsers.cif_cod_check:CifCodCheckParser",
+            "codtools.cif_cod_deposit = aiida_codtools.parsers.cif_cod_deposit:CifCodDepositParser",
+            "codtools.cif_cod_numbers = aiida_codtools.parsers.cif_cod_numbers:CifCodNumbersParser",
+            "codtools.cif_split_primitive = aiida_codtools.parsers.cif_split_primitive:CifSplitPrimitiveParser"
         ]
     },
     "extras_require": {
