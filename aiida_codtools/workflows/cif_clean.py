@@ -8,6 +8,7 @@ from aiida.orm.data.parameter import ParameterData
 from aiida.orm.data.structure import StructureData
 from aiida.orm.utils import CalculationFactory
 from aiida.tools import get_kpoints_path
+from aiida.work import Exit
 from aiida.work.workchain import WorkChain, ToContext, if_
 from aiida.work.workfunctions import workfunction
 from aiida_codtools.common.exceptions import CifParseError
@@ -176,30 +177,37 @@ class CifCleanWorkChain(WorkChain):
             return
 
         try:
-            result = primitive_structure_from_cif(**parse_inputs)
-        except UnsupportedSpeciesError as exception:
-            self.ctx.finish_status = self.ERROR_CIF_HAS_UNKNOWN_SPECIES
-            self.report('CifData<{}> has unknown species'.format(cif.pk))
-        except InvalidOccupationsError as exception:
-            self.ctx.finish_status = self.ERROR_CIF_HAS_INVALID_OCCUPANCIES
-            self.report('CifData<{}> has invalid atomic occupancies'.format(cif.pk))
+            result, node = primitive_structure_from_cif.run_get_node(**parse_inputs)
         except CifParseError as exception:
             self.ctx.finish_status = self.ERROR_CIF_STRUCTURE_PARSING_FAILED
             self.report('CifData<{}> could not be parsed by {}'.format(cif.pk, parse_engine.value))
-        except SymmetryDetectionError as exception:
-            self.ctx.finish_status = self.ERROR_SEEKPATH_SYMMETRY_DETECTION_FAILED
-            self.report('SeeKpath failed to determine the primitive structure of CifData<{}>'.format(cif.pk))
         else:
-            self.ctx.structure = result['primitive_structure']
+            if not node.is_failed:
+                self.ctx.structure = result['primitive_structure']
+            else:
+                # Only set the finish status here, but don't return it yet. This way the CifData can still be
+                # returned as an output in the results steps
+                self.ctx.finish_status = node.finish_status
+
+                if node.finish_status == self.ERROR_CIF_HAS_UNKNOWN_SPECIES:
+                    self.report('CifData<{}> has unknown species'.format(cif.pk))
+                elif node.finish_status == self.ERROR_CIF_HAS_INVALID_OCCUPANCIES:
+                    self.report('CifData<{}> has invalid atomic occupancies'.format(cif.pk))
+                elif node.finish_status == self.ERROR_SEEKPATH_SYMMETRY_DETECTION_FAILED:
+                    self.report('SeeKpath failed to determine the primitive structure of CifData<{}>'.format(cif.pk))
 
     def results(self):
         """
-        The filter and select calculations were successful, so we return the desired output nodes
+        The filter and select calculations were successful, so we return the cleaned CifData node. If the group_cif
+        was defined in the inputs, the node is added to it. If the structure should have been parsed, verify that it
+        is was put in the context by the parse_cif_structure step and add it to the group and outputs, otherwise
+        return the finish status that should correspond to the exit code of the primitive_structure_from_cif function
         """
+        cif = self.ctx.cif
+        self.out('cif', cif)
+
         if 'group_cif' in self.inputs:
-            cif = self.ctx.cif
             self.inputs.group_cif.add_nodes([cif])
-            self.out('cif', cif)
 
         if 'group_structure' in self.inputs:
             try:
@@ -230,15 +238,15 @@ def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance):
     try:
         structure = cif._get_aiida_structure(converter=parse_engine.value, site_tolerance=site_tolerance, store=False)
     except UnsupportedSpeciesError as exception:
-        raise UnsupportedSpeciesError(traceback.format_exc())
+        raise Exit(CifCleanWorkChain.ERROR_CIF_HAS_UNKNOWN_SPECIES)
     except InvalidOccupationsError as exception:
-        raise InvalidOccupationsError(traceback.format_exc())
+        raise Exit(CifCleanWorkChain.ERROR_CIF_HAS_INVALID_OCCUPANCIES)
     except BaseException as exception:
         raise CifParseError(traceback.format_exc())
 
     try:
         seekpath_results = get_kpoints_path(structure, symprec=symprec)
     except SymmetryDetectionError as exception:
-        raise SymmetryDetectionError(traceback.format_exc())
+        raise Exit(CifCleanWorkChain.ERROR_SEEKPATH_SYMMETRY_DETECTION_FAILED)
 
     return seekpath_results
