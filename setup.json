@@ -45,7 +45,7 @@
         ]
     },
     "install_requires": [
-        "aiida-core>=0.10.0rc1"
+        "aiida-core>=1.0.0a1"
     ],
     "license": "MIT License",
     "name": "aiida_codtools",
