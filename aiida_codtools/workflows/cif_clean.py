@@ -8,7 +8,6 @@ from aiida.orm.data.parameter import ParameterData
 from aiida.orm.data.structure import StructureData
 from aiida.orm.utils import CalculationFactory
 from aiida.tools import get_kpoints_path
-from aiida.work import Exit
 from aiida.work.workchain import WorkChain, ToContext, if_
 from aiida.work.workfunctions import workfunction
 from aiida_codtools.common.exceptions import CifParseError
@@ -28,14 +27,6 @@ class CifCleanWorkChain(WorkChain):
     cleaned CifData to construct a StructureData object, which will then be passed to the SeeKpath
     library to analyze it and return the primitive structure
     """
-
-    ERROR_CIF_FILTER_FAILED = 1
-    ERROR_CIF_SELECT_FAILED = 2
-    ERROR_CIF_HAS_NO_ATOMIC_SITES = 3
-    ERROR_CIF_HAS_UNKNOWN_SPECIES = 4
-    ERROR_CIF_HAS_INVALID_OCCUPANCIES = 5
-    ERROR_CIF_STRUCTURE_PARSING_FAILED = 6
-    ERROR_SEEKPATH_SYMMETRY_DETECTION_FAILED = 7
 
     @classmethod
     def define(cls, spec):
@@ -60,6 +51,7 @@ class CifCleanWorkChain(WorkChain):
             help='an optional Group to which the final cleaned CifData node will be added')
         spec.input('group_structure', valid_type=Group, required=False, non_db=True,
             help='an optional Group to which the final reduced StructureData node will be added')
+
         spec.outline(
             cls.run_filter_calculation,
             cls.inspect_filter_calculation,
@@ -70,10 +62,26 @@ class CifCleanWorkChain(WorkChain):
             ),
             cls.results,
         )
+
         spec.output('cif', valid_type=CifData,
             help='the cleaned CifData node')
         spec.output('structure', valid_type=StructureData, required=False,
             help='the primitive cell structure created with SeeKpath from the cleaned CifData')
+
+        spec.exit_code(401, 'ERROR_CIF_FILTER_FAILED',
+            message='the CifFilterCalculation step failed')
+        spec.exit_code(402, 'ERROR_CIF_SELECT_FAILED',
+            message='the CifSelectCalculation step failed')
+        spec.exit_code(403, 'ERROR_CIF_HAS_NO_ATOMIC_SITES',
+            message='the cleaned CifData defines no atomic sites')
+        spec.exit_code(404, 'ERROR_CIF_HAS_UNKNOWN_SPECIES',
+            message='the cleaned CifData contains sites with unknown species')
+        spec.exit_code(405, 'ERROR_CIF_HAS_INVALID_OCCUPANCIES',
+            message='the cleaned CifData defines sites with invalid atomic occupancies')
+        spec.exit_code(406, 'ERROR_CIF_STRUCTURE_PARSING_FAILED',
+            message='failed to parse a StructureData from the cleaned CifData')
+        spec.exit_code(407, 'ERROR_SEEKPATH_SYMMETRY_DETECTION_FAILED',
+            message='SeeKpath failed to determine the primitive structure')
 
     def run_filter_calculation(self):
         """
@@ -91,12 +99,11 @@ class CifCleanWorkChain(WorkChain):
             'options': self.inputs.options.get_dict(),
         })
 
-        process = CifFilterCalculation.process()
-        running = self.submit(process, **inputs)
+        calculation = self.submit(CifFilterCalculation, **inputs)
 
-        self.report('submitted {}<{}>'.format(CifFilterCalculation.__name__, running.pk))
+        self.report('submitted {}<{}>'.format(CifFilterCalculation.__name__, calculation.pk))
 
-        return ToContext(cif_filter=running)
+        return ToContext(cif_filter=calculation)
 
     def inspect_filter_calculation(self):
         """
@@ -106,7 +113,7 @@ class CifCleanWorkChain(WorkChain):
             self.ctx.cif = self.ctx.cif_filter.out.cif
         except AttributeError:
             self.report('aborting: the CifFilterCalculation did not return the required cif output')
-            return self.ERROR_CIF_FILTER_FAILED
+            return self.exit_codes.ERROR_CIF_FILTER_FAILED
 
     def run_select_calculation(self):
         """
@@ -126,12 +133,11 @@ class CifCleanWorkChain(WorkChain):
             'options': self.inputs.options.get_dict(),
         })
 
-        process = CifSelectCalculation.process()
-        running = self.submit(process, **inputs)
+        calculation = self.submit(CifSelectCalculation, **inputs)
 
-        self.report('submitted {}<{}>'.format(CifSelectCalculation.__name__, running.pk))
+        self.report('submitted {}<{}>'.format(CifSelectCalculation.__name__, calculation.pk))
 
-        return ToContext(cif_select=running)
+        return ToContext(cif_select=calculation)
 
     def inspect_select_calculation(self):
         """
@@ -141,7 +147,7 @@ class CifCleanWorkChain(WorkChain):
             self.ctx.cif = self.ctx.cif_select.out.cif
         except AttributeError:
             self.report('aborting: the CifSelectCalculation did not return the required cif output')
-            return self.ERROR_CIF_SELECT_FAILED
+            return self.exit_codes.ERROR_CIF_SELECT_FAILED
 
     def should_parse_cif_structure(self):
         """
@@ -167,34 +173,27 @@ class CifCleanWorkChain(WorkChain):
         }
 
         if not cif.has_atomic_sites:
-            self.ctx.finish_status = self.ERROR_CIF_HAS_NO_ATOMIC_SITES
-            self.report('CifData<{}> has no atomic sites'.format(cif.pk))
+            self.ctx.exit_code = self.exit_codes.ERROR_CIF_HAS_NO_ATOMIC_SITES
+            self.report(self.ctx.exit_code.message)
             return
 
         if cif.has_unknown_species:
-            self.ctx.finish_status = self.ERROR_CIF_HAS_UNKNOWN_SPECIES
-            self.report('CifData<{}> has unknown species'.format(cif.pk))
+            self.ctx.exit_code = self.exit_codes.ERROR_CIF_HAS_UNKNOWN_SPECIES
+            self.report(self.ctx.exit_code.message)
             return
 
         try:
             result, node = primitive_structure_from_cif.run_get_node(**parse_inputs)
-        except CifParseError as exception:
-            self.ctx.finish_status = self.ERROR_CIF_STRUCTURE_PARSING_FAILED
-            self.report('CifData<{}> could not be parsed by {}'.format(cif.pk, parse_engine.value))
-        else:
-            if not node.is_failed:
-                self.ctx.structure = result['primitive_structure']
-            else:
-                # Only set the finish status here, but don't return it yet. This way the CifData can still be
-                # returned as an output in the results steps
-                self.ctx.finish_status = node.finish_status
+        except CifParseError:
+            self.ctx.exit_code = self.exit_codes.ERROR_CIF_STRUCTURE_PARSING_FAILED
+            self.report(self.ctx.exit_code.message)
+            return
 
-                if node.finish_status == self.ERROR_CIF_HAS_UNKNOWN_SPECIES:
-                    self.report('CifData<{}> has unknown species'.format(cif.pk))
-                elif node.finish_status == self.ERROR_CIF_HAS_INVALID_OCCUPANCIES:
-                    self.report('CifData<{}> has invalid atomic occupancies'.format(cif.pk))
-                elif node.finish_status == self.ERROR_SEEKPATH_SYMMETRY_DETECTION_FAILED:
-                    self.report('SeeKpath failed to determine the primitive structure of CifData<{}>'.format(cif.pk))
+        if node.is_failed:
+            self.ctx.exit_code = self.exit_codes(node.exit_status)
+            self.report(self.ctx.exit_code.message)
+        else:
+            self.ctx.structure = result['primitive_structure']
 
     def results(self):
         """
@@ -213,7 +212,7 @@ class CifCleanWorkChain(WorkChain):
             try:
                 structure = self.ctx.structure
             except AttributeError:
-                return self.ctx.finish_status
+                return self.ctx.exit_code
             else:
                 self.inputs.group_structure.add_nodes([structure])
                 self.out('structure', structure)
@@ -237,16 +236,16 @@ def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance):
 
     try:
         structure = cif._get_aiida_structure(converter=parse_engine.value, site_tolerance=site_tolerance, store=False)
-    except UnsupportedSpeciesError as exception:
-        raise Exit(CifCleanWorkChain.ERROR_CIF_HAS_UNKNOWN_SPECIES)
-    except InvalidOccupationsError as exception:
-        raise Exit(CifCleanWorkChain.ERROR_CIF_HAS_INVALID_OCCUPANCIES)
-    except BaseException as exception:
+    except UnsupportedSpeciesError:
+        return CifCleanWorkChain.exit_codes.ERROR_CIF_HAS_UNKNOWN_SPECIES
+    except InvalidOccupationsError:
+        return CifCleanWorkChain.exit_codes.ERROR_CIF_HAS_INVALID_OCCUPANCIES
+    except BaseException:
         raise CifParseError(traceback.format_exc())
 
     try:
         seekpath_results = get_kpoints_path(structure, symprec=symprec)
-    except SymmetryDetectionError as exception:
-        raise Exit(CifCleanWorkChain.ERROR_SEEKPATH_SYMMETRY_DETECTION_FAILED)
+    except SymmetryDetectionError:
+        return CifCleanWorkChain.exit_codes.ERROR_SEEKPATH_SYMMETRY_DETECTION_FAILED
 
     return seekpath_results
