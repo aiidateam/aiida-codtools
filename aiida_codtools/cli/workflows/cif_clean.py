@@ -82,7 +82,7 @@ def launch(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structu
 
     elif group_cif_raw is not None:
 
-        nodes = group_cif_raw.nodes
+        nodes = sorted(group_cif_raw.nodes, key=lambda x: x.pk)
 
         qb = QueryBuilder()
         qb.append(CifFilterCalculation, tag='calculation')
