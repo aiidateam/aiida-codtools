@@ -30,6 +30,10 @@ from aiida.utils.cli import options
     help='Specify the explicit pk of a CifData node for which to run the clean workchain'
 )
 @click.option(
+    '-N', '--starting-node', type=click.INT, default=None, required=False,
+    help='Specify the starting pk of the CifData from which to start cleaning consecutively'
+)
+@click.option(
     '-M', '--max-entries', type=click.INT, default=None, show_default=True, required=False,
     help='Maximum number of CifData entries to clean'
 )
@@ -43,7 +47,7 @@ from aiida.utils.cli import options
 )
 @options.daemon()
 def launch(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structure, group_workchain, node,
-    max_entries, skip_check, parse_engine, daemon):
+    starting_node, max_entries, skip_check, parse_engine, daemon):
     """
     Run the CifCleanWorkChain on the entries in a group with raw imported CifData nodes. It will use
     the cif_filter and cif_select scripts of cod-tools to clean the input cif file. Additionally, if the
@@ -112,6 +116,9 @@ def launch(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structu
 
         if not skip_check and cif.pk in completed_cif_nodes:
             click.echo('{} | CifData<{}> skipped: already submitted'.format(datetime.utcnow().isoformat(), cif.pk))
+            continue
+
+        if starting_node is not None and cif.pk < starting_node:
             continue
 
         inputs = {
