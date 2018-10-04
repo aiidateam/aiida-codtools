@@ -64,7 +64,7 @@ def launch(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structu
     from aiida.orm.group import Group
     from aiida.orm.querybuilder import QueryBuilder
     from aiida.orm.utils import CalculationFactory, DataFactory, WorkflowFactory
-    from aiida.work.launch import run_get_node, submit
+    from aiida.work import runners
     from aiida_codtools.common.resources import get_default_options
 
     CifData = DataFactory('cif')
@@ -97,7 +97,6 @@ def launch(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structu
     else:
         raise click.BadParameter('you have to specify either --group-cif-raw or --node')
 
-
     # Collect the dictionary of not None parameters passed to the launch script and print to screen
     local_vars = locals()
     launch_paramaters = {}
@@ -111,6 +110,7 @@ def launch(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structu
     click.echo('-' * 80)
 
     counter = 0
+    runner = runners.new_runner(rmq_submit=True)
 
     for cif in nodes:
 
@@ -136,13 +136,13 @@ def launch(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structu
             inputs['group_structure'] = group_structure
 
         if daemon:
-            workchain = submit(CifCleanWorkChain, **inputs)
+            workchain = runner.submit(CifCleanWorkChain, **inputs)
             click.echo('{} | CifData<{}> submitting: {}<{}>'.format(
                 datetime.utcnow().isoformat(), cif.pk, CifCleanWorkChain.__name__, workchain.pk))
         else:
             click.echo('{} | CifData<{}> running: {}'.format(
                 datetime.utcnow().isoformat(), cif.pk, CifCleanWorkChain.__name__))
-            result, workchain = run_get_node(CifCleanWorkChain, **inputs)
+            result, workchain = runner.run_get_node(CifCleanWorkChain, **inputs)
 
         if group_workchain is not None:
             group_workchain.add_nodes([workchain])
@@ -151,7 +151,6 @@ def launch(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structu
 
         if max_entries is not None and counter >= max_entries:
             break
-
 
     click.echo('-' * 80)
     click.echo('Submitted {} new workchains'.format(counter))
