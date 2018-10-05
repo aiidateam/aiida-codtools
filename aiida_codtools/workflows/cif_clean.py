@@ -124,6 +124,7 @@ class CifCleanWorkChain(WorkChain):
             'canonicalize-tag-names': True,
             'invert': True,
             'tags': self.inputs.tags.value,
+            'dont-treat-dots-as-underscores': True,
         }
 
         inputs = AttributeDict({
