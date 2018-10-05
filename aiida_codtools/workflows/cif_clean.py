@@ -82,6 +82,8 @@ class CifCleanWorkChain(WorkChain):
             message='failed to parse a StructureData from the cleaned CifData')
         spec.exit_code(407, 'ERROR_SEEKPATH_SYMMETRY_DETECTION_FAILED',
             message='SeeKpath failed to determine the primitive structure')
+        spec.exit_code(408, 'ERROR_SEEKPATH_INCONSISTENT_SYMMETRY',
+            message='SeeKpath detected inconsistent symmetry operations')
 
     def run_filter_calculation(self):
         """
@@ -248,6 +250,8 @@ def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance):
 
     try:
         seekpath_results = get_kpoints_path(structure, symprec=symprec)
+    except ValueError:
+        return CifCleanWorkChain.exit_codes.ERROR_SEEKPATH_INCONSISTENT_SYMMETRY
     except SymmetryDetectionError:
         return CifCleanWorkChain.exit_codes.ERROR_SEEKPATH_SYMMETRY_DETECTION_FAILED
 
