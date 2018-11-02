@@ -1,64 +1,65 @@
 # -*- coding: utf-8 -*-
 import click
-from aiida.utils.cli import command
-from aiida.utils.cli import options
+from aiida.cmdline.params import options
+from aiida.cmdline.utils import decorators
 
 
-@command()
-@options.group(help='Group in which to store the raw imported CifData nodes', required=False)
+@click.command()
+@options.GROUP(help='Group to store the raw imported CifData nodes in.', required=False)
 @click.option(
     '-d', '--database', type=click.Choice(['cod', 'icsd', 'mpds']), default='cod', show_default=True,
-    help='Select the database to import from'
-)
-@click.option(
-    '-M', '--max-entries', type=click.INT, default=None, show_default=True, required=False,
-    help='Maximum number of entries to import'
-)
-@click.option(
-    '-x', '--number-species', type=click.INT, default=None, show_default=True,
-    help='Import only cif files with this number of different species'
-)
-@click.option(
-    '-o', '--skip-partial-occupancies', is_flag=True, default=False,
-    help='Skip entries that have partial occupancies'
+    help='Select the database to import from.'
 )
 @click.option(
     '-s', '--importer-server', type=click.STRING, required=False,
-    help='Optional server address thats hosts the database'
+    help='Optional server address thats hosts the database.'
 )
 @click.option(
     '-h', '--importer-db-host', type=click.STRING, required=False,
-    help='Optional hostname for the database'
+    help='Optional hostname for the database.'
 )
 @click.option(
     '-m', '--importer-db-name', type=click.STRING, required=False,
-    help='Optional name for the database'
+    help='Optional name for the database.'
 )
 @click.option(
     '-p', '--importer-db-password', type=click.STRING, required=False,
-    help='Optional password for the database'
+    help='Optional password for the database.'
 )
 @click.option(
     '-u', '--importer-api-url', type=click.STRING, required=False,
-    help='Optional API url for the database'
+    help='Optional API url for the database.'
 )
 @click.option(
     '-k', '--importer-api-key', type=click.STRING, required=False,
-    help='Optional API key for the database'
+    help='Optional API key for the database.'
+)
+@click.option(
+    '-x', '--number-species', type=click.INT, default=None, show_default=True,
+    help='Import only cif files with this number of different species.'
+)
+@click.option(
+    '-o', '--skip-partial-occupancies', is_flag=True, default=False,
+    help='Skip entries that have partial occupancies.'
+)
+@click.option(
+    '-M', '--max-entries', type=click.INT, default=None, show_default=True, required=False,
+    help='Maximum number of entries to import.'
 )
 @click.option(
     '-c', '--count-entries', is_flag=True, default=False,
-    help='Return the number of entries the query yields and exit'
+    help='Return the number of entries the query yields and exit.'
 )
 @click.option(
     '-b', '--batch-count', type=click.INT, default=1000, show_default=True,
-    help='Store imported cif nodes in batches of this size. This reduces the number of database operations \
-but if the script dies before a checkpoint the imported cif nodes of the current batch are lost'
+    help='Store imported cif nodes in batches of this size. This reduces the number of database operations '
+         'but if the script dies before a checkpoint the imported cif nodes of the current batch are lost.'
 )
 @click.option(
     '-n', '--dry-run', is_flag=True, default=False,
-    help='Perform a dry-run'
+    help='Perform a dry-run.'
 )
+@decorators.with_dbenv()
 def launch(group, database, max_entries, number_species, skip_partial_occupancies, importer_server, importer_db_host,
     importer_db_name, importer_db_password, importer_api_url, importer_api_key, count_entries, batch_count, dry_run):
     """
@@ -131,7 +132,6 @@ def launch(group, database, max_entries, number_species, skip_partial_occupancie
         if number_species is not None:
             query_parameters['number_of_elements'] = number_species
 
-
     # Collect the dictionary of not None parameters passed to the launch script and print to screen
     local_vars = locals()
     for arg in inspect.getargspec(launch.callback).args:
@@ -198,7 +198,7 @@ def launch(group, database, max_entries, number_species, skip_partial_occupancie
 
         if not dry_run and counter % batch_count == 0:
             click.echo('{} | Storing batch of {} CifData nodes'.format(datetime.utcnow().isoformat(), len(batch)))
-            nodes = [cif.store() for cif in batch]
+            nodes = [node.store() for node in batch]
             group.add_nodes(nodes)
             batch = []
 
@@ -211,7 +211,7 @@ def launch(group, database, max_entries, number_species, skip_partial_occupancie
 
     if not dry_run and len(batch) > 0:
         click.echo('{} | Storing batch of {} CifData nodes'.format(datetime.utcnow().isoformat(), len(batch)))
-        nodes = [cif.store() for cif in batch]
+        nodes = [node.store() for node in batch]
         group.add_nodes(nodes)
 
     click.echo('-' * 80)

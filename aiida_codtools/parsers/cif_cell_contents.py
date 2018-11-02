@@ -24,7 +24,7 @@ class CifCellContentsParser(BaseCodtoolsParser):
                 content = f.readlines()
             content = [x.strip('\n') for x in content]
             for line in content:
-                datablock, formula = re.split('\s+', line, 1)
+                datablock, formula = re.split(r'\s+', line, 1)
                 formulae[datablock] = formula
 
         messages = []

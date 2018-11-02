@@ -35,23 +35,23 @@ class CifCodDepositCalculation(CifBaseCalculation):
         try:
             cif = inputdict.pop(self.get_linkname('cif'))
         except KeyError:
-            raise InputValidationError("no CIF file is specified for deposition")
+            raise InputValidationError('no CIF file is specified for deposition')
         if not isinstance(cif, CifData):
-            raise InputValidationError("cif is not of type CifData")
+            raise InputValidationError('cif is not of type CifData')
 
         parameters = inputdict.pop(self.get_linkname('parameters'), None)
         if parameters is None:
             parameters = ParameterData(dict={})
         if not isinstance(parameters, ParameterData):
-            raise InputValidationError("parameters is not of type ParameterData")
+            raise InputValidationError('parameters is not of type ParameterData')
 
         code = inputdict.pop(self.get_linkname('code'), None)
         if code is None:
-            raise InputValidationError("No code found in input")
+            raise InputValidationError('No code found in input')
 
         parameters_dict = parameters.get_dict()
 
-        deposit_file_rel = "deposit.cif"
+        deposit_file_rel = 'deposit.cif'
         deposit_file_abs = tempfolder.get_abs_path(deposit_file_rel)
         shutil.copy(cif.get_file_abs_path(), deposit_file_abs)
 
@@ -64,7 +64,7 @@ class CifCodDepositCalculation(CifBaseCalculation):
         with open(config_file_abs, 'w') as f:
             for k in self._config_keys:
                 if k in parameters_dict.keys():
-                    f.write("{}={}\n".format(k, parameters_dict.pop(k)))
+                    f.write('{}={}\n'.format(k, parameters_dict.pop(k)))
             f.flush()
 
         commandline_params = self._default_commandline_params

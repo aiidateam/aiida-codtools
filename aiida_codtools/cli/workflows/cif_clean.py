@@ -1,51 +1,59 @@
 # -*- coding: utf-8 -*-
 import click
-from aiida.utils.cli import command
-from aiida.utils.cli import options
+from aiida.cmdline.params import types
+from aiida.cmdline.utils import decorators
 
 
-@command()
-@options.code(
-    '-F', '--cif-filter', callback_kwargs={'entry_point': 'codtools.cif_filter'},
-    help='Code that references the codtools cif_filter script'
-)
-@options.code(
-    '-S', '--cif-select', callback_kwargs={'entry_point': 'codtools.cif_select'},
-    help='Code that references the codtools cif_select script'
-)
-@options.group(
-    '-r', '--group-cif-raw', required=False, help='Group with the raw CifData nodes to be cleaned'
-)
-@options.group(
-    '-c', '--group-cif-clean', required=False, help='Group to which to add the cleaned CifData nodes'
-)
-@options.group(
-    '-s', '--group-structure', required=False, help='Group to which to add the final StructureData nodes'
-)
-@options.group(
-    '-w', '--group-workchain', required=False, help='Group to which to add the WorkChain nodes'
+@click.command()
+@click.option(
+    '-F', '--cif-filter', type=types.CodeParamType(entry_point='codtools.cif_filter'),
+    help='Code that references the codtools cif_filter script.'
 )
 @click.option(
-    '-n', '--node', type=click.INT, default=None, required=False,
-    help='Specify the explicit pk of a CifData node for which to run the clean workchain'
+    '-S', '--cif-select', type=types.CodeParamType(entry_point='codtools.cif_select'),
+    help='Code that references the codtools cif_select script.'
+)
+@click.option(
+    '-r', '--group-cif-raw', type=types.GroupParamType(), required=False,
+    help='Group with the raw CifData nodes to be cleaned.'
+)
+@click.option(
+    '-c', '--group-cif-clean', type=types.GroupParamType(), required=False,
+    help='Group to which to add the cleaned CifData nodes.'
+)
+@click.option(
+    '-s', '--group-structure', type=types.GroupParamType(), required=False,
+    help='Group to which to add the final StructureData nodes.'
+)
+@click.option(
+    '-w', '--group-workchain', type=types.GroupParamType(), required=False,
+    help='Group to which to add the WorkChain nodes.'
+)
+@click.option(
+    '-n', '--node', type=types.NodeParamType(), required=False,
+    help='Specify the explicit pk of a CifData node for which to run the clean workchain.'
 )
 @click.option(
     '-N', '--starting-node', type=click.INT, default=None, required=False,
-    help='Specify the starting pk of the CifData from which to start cleaning consecutively'
+    help='Specify the starting pk of the CifData from which to start cleaning consecutively.'
 )
 @click.option(
     '-M', '--max-entries', type=click.INT, default=None, show_default=True, required=False,
-    help='Maximum number of CifData entries to clean'
+    help='Maximum number of CifData entries to clean.'
 )
 @click.option(
     '-f', '--skip-check', is_flag=True, default=False,
-    help='Skip the check whether the CifData node is an input to an already submitted workchain',
+    help='Skip the check whether the CifData node is an input to an already submitted workchain.',
 )
 @click.option(
     '-p', '--parse-engine', type=click.Choice(['ase', 'pymatgen']), default='pymatgen', show_default=True,
-    help='Select the parse engine for parsing the structure from the cleaned cif if requested'
+    help='Select the parse engine for parsing the structure from the cleaned cif if requested.'
 )
-@options.daemon()
+@click.option(
+    '-d', '--daemon', is_flag=True, default=False, show_default=True,
+    help='Submit the workchain to the daemon instead of running it locally.'
+)
+@decorators.with_dbenv()
 def launch(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structure, group_workchain, node,
     starting_node, max_entries, skip_check, parse_engine, daemon):
     """

@@ -23,7 +23,7 @@ class CifCodCheckParser(BaseCodtoolsParser):
             with open(output_path) as f:
                 content = f.readlines()
             lines = [x.strip('\n') for x in content]
-            if re.search(' OK$', lines[0]) is not None:
+            if re.search(r' OK$', lines[0]) is not None:
                 lines.pop(0)
             messages.extend(lines)
 

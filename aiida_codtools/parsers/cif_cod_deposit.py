@@ -68,13 +68,13 @@ class CifCodDepositParser(CifBaseParser):
         status = cod_deposition_states.UNKNOWN
         message = ''
 
-        output = re.sub('^[^:]*cif-deposit\.pl:\s+', '', output)
-        output = re.sub('\n$', '', output)
+        output = re.sub(r'^[^:]*cif-deposit\.pl:\s+', '', output)
+        output = re.sub(r'\n$', '', output)
 
-        dep = re.search('^(structures .+ were successfully deposited into .?COD)$', output)
-        dup = re.search('^(the following structures seem to be already in .?COD):', output, re.IGNORECASE)
-        red = re.search('^(redeposition of structure is unnecessary)', output)
-        lgn = re.search('<p class="error"[^>]*>[^:]+: (.*)', output, re.IGNORECASE)
+        dep = re.search(r'^(structures .+ were successfully deposited into .?COD)$', output)
+        dup = re.search(r'^(the following structures seem to be already in .?COD):', output, re.IGNORECASE)
+        red = re.search(r'^(redeposition of structure is unnecessary)', output)
+        lgn = re.search(r'<p class="error"[^>]*>[^:]+: (.*)', output, re.IGNORECASE)
 
         if dep is not None:
             status = cod_deposition_states.SUCCESS

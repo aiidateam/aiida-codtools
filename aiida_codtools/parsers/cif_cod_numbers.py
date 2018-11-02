@@ -24,7 +24,7 @@ class CifCodNumbersParser(BaseCodtoolsParser):
                 content = f.readlines()
             lines = [x.strip('\n') for x in content]
             for line in lines:
-                fields = re.split('\s+', line)
+                fields = re.split(r'\s+', line)
                 count = None
                 try:
                     count = int(fields[2])

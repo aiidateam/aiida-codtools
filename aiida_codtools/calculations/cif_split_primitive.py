@@ -23,5 +23,5 @@ class CifSplitPrimitiveCalculation(CifBaseCalculation):
 
         calcinfo.codes_info[0].cmdline_params.extend(['--output-dir', self._SPLIT_DIR])
         calcinfo.retrieve_list.append(self._SPLIT_DIR)
-        
+
         return calcinfo

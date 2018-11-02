@@ -2,7 +2,5 @@
 
 
 class CifParseError(Exception):
-    """
-    Exception thrown when a structure could not be parsed from the CifData 
-    """
+    """Exception thrown when a structure could not be parsed from the CifData."""
     pass
