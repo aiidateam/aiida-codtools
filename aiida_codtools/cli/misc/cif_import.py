@@ -160,6 +160,8 @@ def launch(group, verbose, database, max_entries, number_species, skip_partial_o
         click.echo('-' * 80)
 
     for query in queries:
+        if database == 'materialsproject':
+            click.echo('Fetching entries for element: {}'.format(query['query']['elements']['$all'][0]))
         try:
             query_results = importer.query(**query)
         except BaseException as exception:
@@ -169,6 +171,9 @@ def launch(group, verbose, database, max_entries, number_species, skip_partial_o
         if not count_entries:
             existing_cif_nodes = [cif.get_attr('source')['id'] for cif in group.nodes]
 
+        counter_stored = 0
+        counter_skipped = 0
+        counter_present = 0
         counter = 0
         batch = []
 
@@ -176,12 +181,13 @@ def launch(group, verbose, database, max_entries, number_species, skip_partial_o
 
             # Some query result generators fetch in batches, so we cannot simply return the length of the result set
             if count_entries:
-                counter += 1
+                counter_stored += 1
                 continue
 
             source_id = entry.source['id']
 
             if source_id in existing_cif_nodes:
+                counter_present += 1
                 if verbose:
                     click.echo('{} | Cif<{}> skipping: already present in group {}'.format(
                         datetime.utcnow().isoformat(), source_id, group.name))
@@ -190,11 +196,13 @@ def launch(group, verbose, database, max_entries, number_species, skip_partial_o
             try:
                 cif = entry.get_cif_node()
             except (AttributeError, UnicodeDecodeError, StarError, HTTPError) as exception:
+                counter_skipped += 1
                 click.echo('{} | Cif<{}> skipping: encountered an error retrieving cif data: {}'.format(
                     datetime.utcnow().isoformat(), source_id, exception.__class__.__name__))
             else:
                 try:
                     if skip_partial_occupancies and cif.has_partial_occupancies():
+                        counter_skipped += 1
                         click.echo('{} | Cif<{}> skipping: contains partial occupancies'.format(
                             datetime.utcnow().isoformat(), source_id))
                     else:
@@ -206,23 +214,28 @@ def launch(group, verbose, database, max_entries, number_species, skip_partial_o
 
                         if verbose:
                             click.echo(template.format(datetime.utcnow().isoformat(), source_id, cif.uuid, group.name))
-                        counter += 1
+                        counter_stored += 1
 
                 except ValueError:
+                    counter_skipped += 1
                     click.echo('{} | Cif<{}> skipping: some occupancies could not be converted to floats'.format(
                         datetime.utcnow().isoformat(), source_id))
-            if not dry_run and counter % batch_count == 0:
+            if not dry_run and counter_stored % batch_count == 0:
                 if verbose:
                     click.echo('{} | Storing batch of {} CifData nodes'.format(datetime.utcnow().isoformat(), len(batch)))
                 nodes = [cif.store() for cif in batch]
                 group.add_nodes(nodes)
                 batch = []
 
-            if max_entries is not None and counter >= max_entries:
+            if max_entries is not None and counter_stored >= max_entries:
                 break
 
+        entries_total = counter_stored+counter_present+counter_skipped
         if count_entries:
-            click.echo('{}'.format(counter))
+            click.echo('Total number of entries: {}'.format(entries_total))
+            click.echo('Total number of storable entries: {}'.format(counter_stored))
+            click.echo('Total number of entries already present: {}'.format(counter_present))
+            click.echo('Total number of entries to be skipped: {}'.format(counter_skipped))
             return
 
         if not dry_run and len(batch) > 0:
@@ -231,6 +244,6 @@ def launch(group, verbose, database, max_entries, number_species, skip_partial_o
             group.add_nodes(nodes)
 
         click.echo('-' * 80)
-        click.echo('Stored {} new entries'.format(counter))
+        click.echo('Total number of entries: {} (stored: {} / present: {} / skipped: {})'.format(entries_total, counter_stored, counter_present, counter_skipped))
         click.echo('Stopping cif import on {}'.format(datetime.utcnow().isoformat()))
         click.echo('=' * 80)
