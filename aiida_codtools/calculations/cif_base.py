@@ -28,7 +28,7 @@ class CifBaseCalculation(JobCalculation):
         self._DEFAULT_INPUT_FILE = 'aiida.in'
         self._DEFAULT_OUTPUT_FILE = 'aiida.out'
         self._DEFAULT_ERROR_FILE = 'aiida.err'
-        
+
     @classproperty
     def _use_methods(cls):
         retdict = JobCalculation._use_methods
