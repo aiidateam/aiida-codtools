@@ -2,12 +2,15 @@
 import click
 from aiida.utils.cli import command
 from aiida.utils.cli import options
-
+from aiida.common.constants import elements
 
 @command()
 @options.group(help='Group in which to store the raw imported CifData nodes', required=False)
 @click.option(
-    '-d', '--database', type=click.Choice(['cod', 'icsd', 'mpds']), default='cod', show_default=True,
+    '-v', '--verbose', is_flag=True, default=False,
+    help='Turn on verbosity and print details about the ongoing process')
+@click.option(
+    '-d', '--database', type=click.Choice(['cod', 'icsd', 'mpds', 'materialsproject']), default='cod', show_default=True,
     help='Select the database to import from'
 )
 @click.option(
@@ -59,7 +62,7 @@ but if the script dies before a checkpoint the imported cif nodes of the current
     '-n', '--dry-run', is_flag=True, default=False,
     help='Perform a dry-run'
 )
-def launch(group, database, max_entries, number_species, skip_partial_occupancies, importer_server, importer_db_host,
+def launch(group, verbose, database, max_entries, number_species, skip_partial_occupancies, importer_server, importer_db_host,
     importer_db_name, importer_db_password, importer_api_url, importer_api_key, count_entries, batch_count, dry_run):
     """
     Import cif files from various structural databases, store them as CifData nodes and add them to a Group.
@@ -80,6 +83,7 @@ def launch(group, database, max_entries, number_species, skip_partial_occupancie
     importer_parameters = {}
     launch_paramaters = {}
     query_parameters = {}
+    queries = []
 
     if importer_server is not None:
         importer_parameters['server'] = importer_server
@@ -109,7 +113,7 @@ def launch(group, database, max_entries, number_species, skip_partial_occupancie
 
         query_parameters = {
             'query': {},
-            'collection': 'structures'
+            'properties': 'structure'
         }
 
         if number_species == 1:
@@ -125,12 +129,23 @@ def launch(group, database, max_entries, number_species, skip_partial_occupancie
         else:
             raise click.BadParameter('only unaries through quinaries are supported by the {} database'
                 .format(database), param_hint='number_species')
+        queries.append(query_parameters)
+
+    elif database == 'materialsproject':
+        # For Materials Project we need to iterate the query of elements
+        for key, value in elements.items():
+            element = value['symbol']
+            query_parameters = {
+                'query': {'elements': {'$all': [element]}},
+                'properties': 'structure'
+            }
+            queries.append(query_parameters)
 
     else:
 
         if number_species is not None:
             query_parameters['number_of_elements'] = number_species
-
+            queries.append(query_parameters)
 
     # Collect the dictionary of not None parameters passed to the launch script and print to screen
     local_vars = locals()
@@ -146,75 +161,79 @@ def launch(group, database, max_entries, number_species, skip_partial_occupancie
         click.echo('Query parameters: {}'.format(query_parameters))
         click.echo('-' * 80)
 
-    try:
-        query_results = importer.query(**query_parameters)
-    except BaseException as exception:
-        click.echo('database query failed: {}'.format(exception))
-        return
 
-    if not count_entries:
-        existing_cif_nodes = [cif.get_attr('source')['id'] for cif in group.nodes]
-
-    counter = 0
-    batch = []
-
-    for entry in query_results:
-
-        # Some query result generators fetch in batches, so we cannot simply return the length of the result set
-        if count_entries:
-            counter += 1
-            continue
-
-        source_id = entry.source['id']
-
-        if source_id in existing_cif_nodes:
-            click.echo('{} | Cif<{}> skipping: already present in group {}'.format(
-                datetime.utcnow().isoformat(), source_id, group.name))
-            continue
-
+    for query in queries:
         try:
-            cif = entry.get_cif_node()
-        except (AttributeError, UnicodeDecodeError, StarError, HTTPError) as exception:
-            click.echo('{} | Cif<{}> skipping: encountered an error retrieving cif data: {}'.format(
-                datetime.utcnow().isoformat(), source_id, exception.__class__.__name__))
-        else:
+            query_results = importer.query(**query)
+        except BaseException as exception:
+            click.echo('database query failed: {}'.format(exception))
+            return
+
+        if not count_entries:
+            existing_cif_nodes = [cif.get_attr('source')['id'] for cif in group.nodes]
+
+        counter = 0
+        batch = []
+
+        for entry in query_results:
+
+            # Some query result generators fetch in batches, so we cannot simply return the length of the result set
+            if count_entries:
+                counter += 1
+                continue
+
+            source_id = entry.source['id']
+
+            if source_id in existing_cif_nodes:
+                if verbose:
+                    click.echo('{} | Cif<{}> skipping: already present in group {}'.format(
+                        datetime.utcnow().isoformat(), source_id, group.name))
+                continue
+
             try:
-                if skip_partial_occupancies and cif.has_partial_occupancies():
-                    click.echo('{} | Cif<{}> skipping: contains partial occupancies'.format(
-                        datetime.utcnow().isoformat(), source_id))
-                else:
-                    if not dry_run:
-                        batch.append(cif)
-                        template = '{} | Cif<{}> adding: new CifData<{}> to group {}'
+                cif = entry.get_cif_node()
+            except (AttributeError, UnicodeDecodeError, StarError, HTTPError) as exception:
+                click.echo('{} | Cif<{}> skipping: encountered an error retrieving cif data: {}'.format(
+                    datetime.utcnow().isoformat(), source_id, exception.__class__.__name__))
+            else:
+                try:
+                    if skip_partial_occupancies and cif.has_partial_occupancies():
+                        click.echo('{} | Cif<{}> skipping: contains partial occupancies'.format(
+                            datetime.utcnow().isoformat(), source_id))
                     else:
-                        template = '{} | Cif<{}> would have added: CifData<{}> to group {}'
+                        if not dry_run:
+                            batch.append(cif)
+                            template = '{} | Cif<{}> adding: new CifData<{}> to group {}'
+                        else:
+                            template = '{} | Cif<{}> would have added: CifData<{}> to group {}'
 
-                    click.echo(template.format(datetime.utcnow().isoformat(), source_id, cif.uuid, group.name))
-                    counter += 1
+                        if verbose:
+                            click.echo(template.format(datetime.utcnow().isoformat(), source_id, cif.uuid, group.name))
+                        counter += 1
 
-            except ValueError:
-                click.echo('{} | Cif<{}> skipping: some occupancies could not be converted to floats'.format(
-                    datetime.utcnow().isoformat(), source_id))
+                except ValueError:
+                    click.echo('{} | Cif<{}> skipping: some occupancies could not be converted to floats'.format(
+                        datetime.utcnow().isoformat(), source_id))
+            if not dry_run and counter % batch_count == 0:
+                if verbose:
+                    click.echo('{} | Storing batch of {} CifData nodes'.format(datetime.utcnow().isoformat(), len(batch)))
+                nodes = [cif.store() for cif in batch]
+                group.add_nodes(nodes)
+                batch = []
 
-        if not dry_run and counter % batch_count == 0:
+            if max_entries is not None and counter >= max_entries:
+                break
+
+        if count_entries:
+            click.echo('{}'.format(counter))
+            return
+
+        if not dry_run and len(batch) > 0:
             click.echo('{} | Storing batch of {} CifData nodes'.format(datetime.utcnow().isoformat(), len(batch)))
             nodes = [cif.store() for cif in batch]
             group.add_nodes(nodes)
-            batch = []
 
-        if max_entries is not None and counter >= max_entries:
-            break
-
-    if count_entries:
-        click.echo('{}'.format(counter))
-        return
-
-    if not dry_run and len(batch) > 0:
-        click.echo('{} | Storing batch of {} CifData nodes'.format(datetime.utcnow().isoformat(), len(batch)))
-        nodes = [cif.store() for cif in batch]
-        group.add_nodes(nodes)
-
-    click.echo('-' * 80)
-    click.echo('Stored {} new entries'.format(counter))
-    click.echo('Stopping cif import on {}'.format(datetime.utcnow().isoformat()))
-    click.echo('=' * 80)
+        click.echo('-' * 80)
+        click.echo('Stored {} new entries'.format(counter))
+        click.echo('Stopping cif import on {}'.format(datetime.utcnow().isoformat()))
+        click.echo('=' * 80)
