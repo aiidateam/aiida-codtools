@@ -89,9 +89,14 @@ class CifCleanWorkChain(WorkChain):
         """
         Run the CifFilterCalculation on the CifData input node
         """
+
         parameters = {
             'use-perl-parser': True,
-            'fix-syntax-errors': True,
+            'fix-syntax-errors': True
+        }
+
+        settings = {
+            'source': self.inputs.cif.get_attrs().get('source', None)
         }
 
         inputs = AttributeDict({
@@ -99,8 +104,8 @@ class CifCleanWorkChain(WorkChain):
             'code': self.inputs.cif_filter,
             'parameters': ParameterData(dict=parameters),
             'options': self.inputs.options.get_dict(),
+            'settings': ParameterData(dict=settings)
         })
-
         calculation = self.submit(CifFilterCalculation, **inputs)
 
         self.report('submitted {}<{}>'.format(CifFilterCalculation.__name__, calculation.pk))
@@ -111,6 +116,7 @@ class CifCleanWorkChain(WorkChain):
         """
         Inspect the result of the CifFilterCalculation, verifying that it produced a CifData output node
         """
+
         try:
             self.ctx.cif = self.ctx.cif_filter.out.cif
         except AttributeError:
@@ -129,11 +135,16 @@ class CifCleanWorkChain(WorkChain):
             'dont-treat-dots-as-underscores': True,
         }
 
+        settings = {
+            'source': self.inputs.cif.get_attrs().get('source', None)
+        }
+
         inputs = AttributeDict({
             'cif': self.ctx.cif,
             'code': self.inputs.cif_select,
             'parameters': ParameterData(dict=parameters),
             'options': self.inputs.options.get_dict(),
+            'settings': ParameterData(dict=settings)
         })
 
         calculation = self.submit(CifSelectCalculation, **inputs)
@@ -184,14 +195,14 @@ class CifCleanWorkChain(WorkChain):
             self.ctx.exit_code = self.exit_codes.ERROR_CIF_HAS_UNKNOWN_SPECIES
             self.report(self.ctx.exit_code.message)
             return
-
+        self.report("CIF SOURCE:{}".format(cif.source))
         try:
             structure, node = primitive_structure_from_cif.run_get_node(**parse_inputs)
         except CifParseError:
             self.ctx.exit_code = self.exit_codes.ERROR_CIF_STRUCTURE_PARSING_FAILED
             self.report(self.ctx.exit_code.message)
             return
-
+        self.report("STRUCTURE SOURCE:{}".format(structure.source))
         if node.is_failed:
             self.ctx.exit_code = self.exit_codes(node.exit_status)
             self.report(self.ctx.exit_code.message)
@@ -258,6 +269,7 @@ def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance):
 
     # Store important information that should be easily queryable as attributes in the StructureData
     parameters = seekpath_results['parameters'].get_dict()
+    structure.source = {'id': 'test'}
     structure = seekpath_results['primitive_structure'].store()
 
     for key in ['spacegroup_international', 'spacegroup_number', 'bravais_lattice', 'bravais_lattice_extended']:

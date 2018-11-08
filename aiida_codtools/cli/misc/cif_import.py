@@ -7,10 +7,14 @@ from aiida.common.constants import elements
 @command()
 @options.group(help='Group in which to store the raw imported CifData nodes', required=False)
 @click.option(
+<<<<<<< Updated upstream
     '-v', '--verbose', is_flag=True, default=False,
     help='Turn on verbosity and print details about the ongoing process')
 @click.option(
     '-d', '--database', type=click.Choice(['cod', 'icsd', 'mpds', 'materialsproject']), default='cod', show_default=True,
+=======
+    '-d', '--database', type=click.Choice(['cod', 'icsd', 'mpds', 'matp']), default='cod', show_default=True,
+>>>>>>> Stashed changes
     help='Select the database to import from'
 )
 @click.option(
@@ -129,6 +133,7 @@ def launch(group, verbose, database, max_entries, number_species, skip_partial_o
         else:
             raise click.BadParameter('only unaries through quinaries are supported by the {} database'
                 .format(database), param_hint='number_species')
+<<<<<<< Updated upstream
         queries.append(query_parameters)
 
     elif database == 'materialsproject':
@@ -141,11 +146,21 @@ def launch(group, verbose, database, max_entries, number_species, skip_partial_o
             }
             queries.append(query_parameters)
 
+=======
+    elif database == 'matp':
+        query_parameters = {
+            'query': {'pretty_formula': 'Fe2O3'},
+            'collection': 'structure'
+        }
+>>>>>>> Stashed changes
     else:
 
         if number_species is not None:
             query_parameters['number_of_elements'] = number_species
+<<<<<<< Updated upstream
             queries.append(query_parameters)
+=======
+>>>>>>> Stashed changes
 
     # Collect the dictionary of not None parameters passed to the launch script and print to screen
     local_vars = locals()
@@ -224,11 +239,18 @@ def launch(group, verbose, database, max_entries, number_species, skip_partial_o
             if max_entries is not None and counter >= max_entries:
                 break
 
+<<<<<<< Updated upstream
         if count_entries:
             click.echo('{}'.format(counter))
             return
 
         if not dry_run and len(batch) > 0:
+=======
+            except ValueError:
+                click.echo('{} | Cif<{}> skipping: some occupancies could not be converted to floats'.format(
+                    datetime.utcnow().isoformat(), source_id))
+        if not dry_run and counter % batch_count == 0:
+>>>>>>> Stashed changes
             click.echo('{} | Storing batch of {} CifData nodes'.format(datetime.utcnow().isoformat(), len(batch)))
             nodes = [cif.store() for cif in batch]
             group.add_nodes(nodes)
