@@ -45,13 +45,6 @@ class CifBaseCalculation(JobCalculation):
                 'linkname': 'parameters',
                 'docstring': 'Parameters used in command line',
             },
-            'settings': {
-                'valid_types': ParameterData,
-                'additional_parameter': None,
-                'linkname': 'settings',
-                'docstring': 'Extra settings',
-            },
-
         })
         return retdict
 
@@ -67,6 +60,7 @@ class CifBaseCalculation(JobCalculation):
         super(CifBaseCalculation, self).set_resources(resources_dict)
 
     def _validate_resources(self, **kwargs):
+
         for key in ['num_machines', 'num_mpiprocs_per_machine', 'tot_num_mpiprocs']:
             if key in kwargs and kwargs[key] != 1:
                 raise FeatureNotAvailable(
