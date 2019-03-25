@@ -7,9 +7,6 @@ if __name__ == '__main__':
     setup(
         include_package_data=True,
         packages=find_packages(),
-        setup_requires=[
-            'reentry'
-        ],
+        setup_requires=['reentry'],
         reentry_register=True,
-        **kwargs
-    )
+        **kwargs)

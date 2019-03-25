@@ -18,6 +18,7 @@ class CifBaseCalculation(CalcJob):
 
     @classmethod
     def define(cls, spec):
+        # yapf: disable
         super(CifBaseCalculation, cls).define(spec)
         spec.input('metadata.options.input_filename', valid_type=six.string_types, default='aiida.in', non_db=True,
             help='Filename to which the input for the code that is to be run will be written.')

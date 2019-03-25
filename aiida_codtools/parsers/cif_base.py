@@ -12,6 +12,8 @@ CifData = DataFactory('cif')
 class CifBaseParser(Parser):
     """Generic `Parser` implementation that can easily be extended to work with any of the `cod-tools` scripts."""
 
+    # pylint: disable=inconsistent-return-statements
+
     _supported_calculation_class = CifBaseCalculation
 
     def __init__(self, node):

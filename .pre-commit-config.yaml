@@ -1,0 +1,23 @@
+- repo: local
+  hooks:
+
+  - id: yapf
+    name: yapf
+    entry: yapf
+    language: system
+    types: [python]
+    args: ['-i']
+    exclude: &exclude_files >
+      (?x)^(
+        docs/.*|
+        tests/.*
+      )$
+
+  - id: prospector
+    language: system
+    types: [file, python]
+    exclude: *exclude_files
+    name: prospector
+    description: 'This hook runs Prospector: https://github.com/landscapeio/prospector'
+    entry: prospector
+

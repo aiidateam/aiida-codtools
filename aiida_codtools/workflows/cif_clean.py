@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=inconsistent-return-statements
 from aiida import orm
 from aiida.common import exceptions
 from aiida.engine import WorkChain, ToContext, if_
 from aiida.plugins import CalculationFactory
 
 from aiida_codtools.common.resources import get_default_options
-
 
 CifFilterCalculation = CalculationFactory('codtools.cif_filter')
 CifSelectCalculation = CalculationFactory('codtools.cif_select')
@@ -22,6 +22,7 @@ class CifCleanWorkChain(WorkChain):
 
     @classmethod
     def define(cls, spec):
+        # yapf: disable
         super(CifCleanWorkChain, cls).define(spec)
         spec.input('cif', valid_type=orm.CifData,
             help='The CifData node that is to be cleaned.')
@@ -169,7 +170,7 @@ class CifCleanWorkChain(WorkChain):
             return
 
         if node.is_failed:
-            self.ctx.exit_code = self.exit_codes(node.exit_status)
+            self.ctx.exit_code = self.exit_codes(node.exit_status)  # pylint: disable=too-many-function-args
             self.report(self.ctx.exit_code.message)
         else:
             self.ctx.structure = structure

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# yapf: disable
 import click
 
 from aiida.cmdline.params import options
@@ -59,6 +60,7 @@ def launch_cif_import(group, database, max_entries, number_species, skip_partial
     is no guarantee that these id's do not overlap between different structural databases and we do not check
     explicitly for the database, it is advised to use separate groups for different structural databases.
     """
+    # pylint: disable=too-many-arguments,too-many-locals,too-many-statements,too-many-branches
     import inspect
     from CifFile.StarFile import StarError
     from datetime import datetime
@@ -201,7 +203,7 @@ def launch_cif_import(group, database, max_entries, number_species, skip_partial
         click.echo('{}'.format(counter))
         return
 
-    if not dry_run and len(batch) > 0:
+    if not dry_run and batch:
         click.echo('{} | Storing batch of {} CifData nodes'.format(datetime.utcnow().isoformat(), len(batch)))
         nodes = [node.store() for node in batch]
         group.add_nodes(nodes)

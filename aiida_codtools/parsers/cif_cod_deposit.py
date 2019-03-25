@@ -51,18 +51,15 @@ class CifCodDepositParser(CifBaseParser):
             lines = [x.strip('\n') for x in content]
             messages.extend(lines)
 
-        parameters = {
-            'output_messages': messages,
-            'status': status
-        }
+        parameters = {'output_messages': messages, 'status': status}
 
         output_nodes = []
         output_nodes.append(('messages', Dict(dict=parameters)))
 
         if status == cod_deposition_states.SUCCESS:
             return True, output_nodes
-        else:
-            return False, output_nodes
+
+        return False, output_nodes
 
     @classmethod
     def _deposit_result(cls, output):

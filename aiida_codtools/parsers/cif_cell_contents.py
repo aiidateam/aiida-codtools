@@ -41,7 +41,7 @@ class CifCellContentsParser(BaseCodToolsParser):
         output_nodes.append(('messages', Dict(dict={'output_messages': messages})))
 
         success = True
-        if len(formulae.keys()) == 0:
+        if not formulae.keys():
             success = False
 
         return success, output_nodes

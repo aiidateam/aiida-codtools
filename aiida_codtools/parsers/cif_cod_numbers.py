@@ -47,10 +47,7 @@ class CifCodNumbersParser(BaseCodToolsParser):
             self._check_failed(lines)
             errors.extend(lines)
 
-        parameters = {
-            'duplicates': duplicates,
-            'errors': errors
-        }
+        parameters = {'duplicates': duplicates, 'errors': errors}
 
         output_nodes = []
         output_nodes.append(('output', Dict(dict=parameters)))

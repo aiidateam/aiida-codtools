@@ -30,7 +30,7 @@ class CifSplitPrimitiveParser(BaseCodToolsParser):
                 content = f.readlines()
             content = [x.strip('\n') for x in content]
             self._check_failed(content)
-            if len(content) > 0:
+            if content:
                 success = True
             for filename in content:
                 path = os.path.join(out_folder.get_abs_path('.'), filename)
@@ -41,9 +41,7 @@ class CifSplitPrimitiveParser(BaseCodToolsParser):
                 content = f.readlines()
             content = [x.strip('\n') for x in content]
 
-            messages = {
-                'output_messages': content
-            }
+            messages = {'output_messages': content}
 
             output_nodes.append(('messages', Dict(dict=messages)))
 

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# yapf: disable
 import click
 
 from aiida.cmdline.params import options, types
@@ -17,6 +18,7 @@ from aiida.cmdline.utils import decorators
 @decorators.with_dbenv()
 def launch_cif_filter(code, cif, daemon):
     """Run the `CifFilterCalculation` for the given `CifData` node."""
+    # pylint: disable=too-many-locals
     import inspect
     from datetime import datetime
 
@@ -26,7 +28,6 @@ def launch_cif_filter(code, cif, daemon):
     from aiida_codtools.common.resources import get_default_options
     from aiida_codtools.common.utils import get_input_node
 
-    CifData = factories.DataFactory('cif')
     CifFilterCalculation = factories.CalculationFactory('codtools.cif_filter')
 
     # Collect the dictionary of not None parameters passed to the launch script and print to screen
@@ -58,4 +59,4 @@ def launch_cif_filter(code, cif, daemon):
     else:
         click.echo('{} | CifData<{}> running: {}'.format(
             datetime.utcnow().isoformat(), cif.pk, CifFilterCalculation.__name__))
-        result, node = launch.run_get_node(CifFilterCalculation, **inputs)
+        launch.run_get_node(CifFilterCalculation, **inputs)

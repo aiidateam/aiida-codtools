@@ -15,18 +15,17 @@ class CifCodDepositCalculation(CifBaseCalculation):
         self._default_parser = 'codtools.cif_cod_deposit'
         self._CONFIG_FILE = 'config.conf'
         default_url = 'http://test.crystallography.net/cgi-bin/cif-deposit.pl'
-        self._default_commandline_params = ['--use-rm',
-                                            '--read-stdin',
-                                            '--output-mode', 'stdout',
-                                            '--no-print-timestamps',
-                                            '--url', default_url,
-                                            '--config', self._CONFIG_FILE]
+        self._default_commandline_params = [
+            '--use-rm', '--read-stdin', '--output-mode', 'stdout', '--no-print-timestamps', '--url', default_url,
+            '--config', self._CONFIG_FILE
+        ]
 
-        self._config_keys = ['username', 'password', 'journal',
-                             'user_email', 'author_name', 'author_email',
-                             'hold_period']
+        self._config_keys = [
+            'username', 'password', 'journal', 'user_email', 'author_name', 'author_email', 'hold_period'
+        ]
 
     def _prepare_for_submission(self, tempfolder, inputdict):
+        # pylint: disable=too-many-locals
         from aiida.orm import CifData, Dict
         from aiida_codtools.calculations import commandline_params_from_dict
         import shutil
@@ -67,16 +66,14 @@ class CifCodDepositCalculation(CifBaseCalculation):
             f.flush()
 
         commandline_params = self._default_commandline_params
-        commandline_params.extend(
-            commandline_params_from_dict(parameters_dict))
+        commandline_params.extend(commandline_params_from_dict(parameters_dict))
 
         calcinfo = datastructures.CalcInfo()
         calcinfo.uuid = self.uuid
         # The command line parameters should be generated from 'parameters'
         calcinfo.local_copy_list = []
         calcinfo.remote_copy_list = []
-        calcinfo.retrieve_list = [self._DEFAULT_OUTPUT_FILE,
-                                  self._DEFAULT_ERROR_FILE]
+        calcinfo.retrieve_list = [self._DEFAULT_OUTPUT_FILE, self._DEFAULT_ERROR_FILE]
         calcinfo.retrieve_singlefile_list = []
 
         codeinfo = datastructures.CodeInfo()

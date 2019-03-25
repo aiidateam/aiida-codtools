@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# yapf: disable
 import click
 
 from aiida.cmdline.params import types
@@ -49,6 +50,7 @@ def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, gro
     cleaned `CifData` to obtain the structure and then use SeeKpath to find the primitive structure, which, if
     successful, will be added to the `group-structure` group.
     """
+    # pylint: disable=too-many-arguments,too-many-locals,too-many-statements,too-many-branches
     import inspect
     from datetime import datetime
 
@@ -157,7 +159,7 @@ def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, gro
         else:
             click.echo('{} | CifData<{}> running: {}'.format(
                 datetime.utcnow().isoformat(), cif.pk, CifCleanWorkChain.__name__))
-            result, workchain = launch.run_get_node(CifCleanWorkChain, **inputs)
+            _, workchain = launch.run_get_node(CifCleanWorkChain, **inputs)
 
         if group_workchain is not None:
             group_workchain.add_nodes([workchain])
