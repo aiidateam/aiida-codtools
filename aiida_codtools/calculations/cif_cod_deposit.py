@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 from aiida.common import datastructures
 from aiida.common import exceptions
 from aiida_codtools.calculations.cif_base import CifBaseCalculation
@@ -61,7 +62,7 @@ class CifCodDepositCalculation(CifBaseCalculation):
         config_file_abs = tempfolder.get_abs_path(self._CONFIG_FILE)
         with open(config_file_abs, 'w') as f:
             for k in self._config_keys:
-                if k in parameters_dict.keys():
+                if k in list(parameters_dict.keys()):
                     f.write("{}={}\n".format(k, parameters_dict.pop(k)))
             f.flush()
 

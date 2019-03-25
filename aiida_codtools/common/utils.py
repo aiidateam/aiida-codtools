@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
+
 
 def get_input_node(cls, value):
     """Return a `Node` of a given class and given value.

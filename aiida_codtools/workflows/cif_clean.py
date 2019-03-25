@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=inconsistent-return-statements
+from __future__ import absolute_import
 from aiida import orm
 from aiida.common import exceptions
 from aiida.engine import WorkChain, ToContext, if_

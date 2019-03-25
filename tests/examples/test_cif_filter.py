@@ -10,6 +10,8 @@
 ###########################################################################
 
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import os
 
@@ -47,7 +49,7 @@ while len(sys.argv) > 0:
         else:
             argkey = sys.argv.pop(0)
             argval = True
-        if argkey not in options.keys():
+        if argkey not in list(options.keys()):
             options[argkey] = []
         options[argkey].append(argval)
     else:
@@ -77,16 +79,16 @@ calc.use_parameters(parameters)
 
 if submit_test:
     subfolder, script_filename = calc.submit_test()
-    print "Test_submit for calculation (uuid='{}')".format(
-        calc.uuid)
-    print "Submit file in {}".format(os.path.join(
+    print("Test_submit for calculation (uuid='{}')".format(
+        calc.uuid))
+    print("Submit file in {}".format(os.path.join(
         os.path.relpath(subfolder.abspath),
         script_filename
-    ))
+    )))
 else:
     calc.store_all()
-    print "created calculation; calc=Calculation(uuid='{}') # ID={}".format(
-        calc.uuid, calc.dbnode.pk)
+    print("created calculation; calc=Calculation(uuid='{}') # ID={}".format(
+        calc.uuid, calc.dbnode.pk))
     calc.submit()
-    print "submitted calculation; calc=Calculation(uuid='{}') # ID={}".format(
-        calc.uuid, calc.dbnode.pk)
+    print("submitted calculation; calc=Calculation(uuid='{}') # ID={}".format(
+        calc.uuid, calc.dbnode.pk))

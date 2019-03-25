@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 import re
 
 from aiida.orm import Dict
@@ -41,7 +42,7 @@ class CifCellContentsParser(BaseCodToolsParser):
         output_nodes.append(('messages', Dict(dict={'output_messages': messages})))
 
         success = True
-        if not formulae.keys():
+        if not list(formulae.keys()):
             success = False
 
         return success, output_nodes

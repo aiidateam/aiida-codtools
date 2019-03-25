@@ -21,3 +21,11 @@
     description: 'This hook runs Prospector: https://github.com/landscapeio/prospector'
     entry: prospector
 
+- repo: https://github.com/python-modernize/python-modernize.git
+  sha: a234ce4e185cf77a55632888f1811d83b4ad9ef2
+  hooks:
+  - id: python-modernize
+    exclude: ^docs/
+    args:
+      - --write
+      - --nobackups

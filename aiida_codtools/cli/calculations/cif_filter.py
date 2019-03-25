@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # yapf: disable
+from __future__ import absolute_import
 import click
 
 from aiida.cmdline.params import options, types

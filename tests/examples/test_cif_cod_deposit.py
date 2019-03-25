@@ -8,6 +8,8 @@
 # For further information on the license, see the LICENSE.txt file        #
 # For further information please visit http://www.aiida.net               #
 ###########################################################################
+from __future__ import absolute_import
+from __future__ import print_function
 from aiida import load_dbenv
 
 
@@ -51,7 +53,7 @@ if __name__ == "__main__":
             else:
                 argkey = sys.argv.pop(0)
                 argval = True
-            if argkey not in options.keys():
+            if argkey not in list(options.keys()):
                 options[argkey] = []
             options[argkey].append(argval)
         else:
@@ -70,14 +72,14 @@ if __name__ == "__main__":
             dbattributes__key="input_plugin",
             dbattributes__tval=expected_code_type)]
         if valid_code_labels:
-            print >> sys.stderr, "Pass as further parameter a valid code label."
-            print >> sys.stderr, "Valid labels with a {} executable are:".format(expected_code_type)
+            print("Pass as further parameter a valid code label.", file=sys.stderr)
+            print("Valid labels with a {} executable are:".format(expected_code_type), file=sys.stderr)
             for l in valid_code_labels:
-                print >> sys.stderr, "*", l
+                print("*", l, file=sys.stderr)
         else:
-            print >> sys.stderr, "Code not valid, and no valid codes for {}. Configure at least one first using".format(
-                expected_code_type)
-            print >> sys.stderr, "    verdi code setup"
+            print("Code not valid, and no valid codes for {}. Configure at least one first using".format(
+                expected_code_type), file=sys.stderr)
+            print("    verdi code setup", file=sys.stderr)
         sys.exit(1)
 
     cif = None
@@ -102,16 +104,16 @@ if __name__ == "__main__":
 
     if submit_test:
         subfolder, script_filename = calc.submit_test()
-        print "Test_submit for calculation (uuid='{}')".format(
-            calc.uuid)
-        print "Submit file in {}".format(os.path.join(
+        print("Test_submit for calculation (uuid='{}')".format(
+            calc.uuid))
+        print("Submit file in {}".format(os.path.join(
             os.path.relpath(subfolder.abspath),
             script_filename
-        ))
+        )))
     else:
         calc.store_all()
-        print "created calculation; calc=Calculation(uuid='{}') # ID={}".format(
-            calc.uuid, calc.dbnode.pk)
+        print("created calculation; calc=Calculation(uuid='{}') # ID={}".format(
+            calc.uuid, calc.dbnode.pk))
         calc.submit()
-        print "submitted calculation; calc=Calculation(uuid='{}') # ID={}".format(
-            calc.uuid, calc.dbnode.pk)
+        print("submitted calculation; calc=Calculation(uuid='{}') # ID={}".format(
+            calc.uuid, calc.dbnode.pk))

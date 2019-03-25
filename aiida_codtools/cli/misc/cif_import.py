@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # yapf: disable
+from __future__ import absolute_import
 import click
 
 from aiida.cmdline.params import options
@@ -64,7 +65,7 @@ def launch_cif_import(group, database, max_entries, number_species, skip_partial
     import inspect
     from CifFile.StarFile import StarError
     from datetime import datetime
-    from urllib2 import HTTPError
+    from six.moves.urllib.error import HTTPError
 
     from aiida import orm
     from aiida.plugins import factories
