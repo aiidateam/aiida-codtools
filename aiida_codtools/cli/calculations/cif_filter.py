@@ -34,7 +34,7 @@ def launch_cif_filter(code, cif, daemon):
     # Collect the dictionary of not None parameters passed to the launch script and print to screen
     local_vars = locals()
     launch_paramaters = {}
-    for arg in inspect.getargspec(launch_cif_filter.callback).args:
+    for arg in inspect.getargspec(launch_cif_filter.callback).args:  # pylint: disable=deprecated-method
         if arg in local_vars and local_vars[arg]:
             launch_paramaters[arg] = local_vars[arg]
 

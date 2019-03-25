@@ -37,10 +37,8 @@
     },
     "extras_require": {
         "dev": [
-            "pre-commit", 
-            "prospector==1.1.5", 
-            "pylint==1.9.4; python_version<'3.0'", 
-            "pylint==2.2.2; python_version>='3.0'", 
+            "pre-commit==1.14.4",
+            "prospector==1.1.6.2",
             "yapf==0.26.0"
         ],
         "docs": [
@@ -50,7 +48,8 @@
         ]
     },
     "install_requires": [
-        "aiida-core>=1.0.0a1"
+        "aiida-core[atomic_tools]>=1.0.0b1",
+        "click>=6.0.0"
     ],
     "license": "MIT License",
     "name": "aiida_codtools",

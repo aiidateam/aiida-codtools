@@ -67,7 +67,7 @@ def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, gro
     # Collect the dictionary of not None parameters passed to the launch script and print to screen
     local_vars = locals()
     launch_paramaters = {}
-    for arg in inspect.getargspec(launch_cif_clean.callback).args:
+    for arg in inspect.getargspec(launch_cif_clean.callback).args:  # pylint: disable=deprecated-method
         if arg in local_vars and local_vars[arg]:
             launch_paramaters[arg] = local_vars[arg]
 

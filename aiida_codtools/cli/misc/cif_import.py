@@ -129,7 +129,7 @@ def launch_cif_import(group, database, max_entries, number_species, skip_partial
 
     # Collect the dictionary of not None parameters passed to the launch script and print to screen
     local_vars = locals()
-    for arg in inspect.getargspec(launch_cif_import.callback).args:
+    for arg in inspect.getargspec(launch_cif_import.callback).args:  # pylint: disable=deprecated-method
         if arg in local_vars and local_vars[arg]:
             launch_paramaters[arg] = local_vars[arg]
 
