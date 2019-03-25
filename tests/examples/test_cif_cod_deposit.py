@@ -17,8 +17,8 @@ import sys
 import os
 
 from aiida.common.exceptions import NotExistent
-
-from aiida.orm import Code, Computer, DataFactory
+from aiida.orm import Code, Computer
+from aiida.plugins import DataFactory
 
 ################################################################
 # Test for cif_cod_deposit script from cod-tools package.
@@ -28,7 +28,7 @@ from aiida.orm import Code, Computer, DataFactory
 
 if __name__ == "__main__":
     CifData = DataFactory('cif')
-    ParameterData = DataFactory('parameter')
+    Dict = DataFactory('dict')
     submit_test = None
     codename = None
     options = {"deposition-type": "published"}
@@ -82,11 +82,11 @@ if __name__ == "__main__":
 
     cif = None
     if len(files) == 1:
-        cif = CifData(file=os.path.abspath(files[0]))
+        cif = CifData(filepath=os.path.abspath(files[0]))
     else:
         raise ValueError("Please specify a single CIF file")
 
-    parameters = ParameterData(dict=options)
+    parameters = Dict(dict=options)
     computer = Computer.get(Computer.list_names()[0])
 
     calc = code.new_calc()

@@ -2,12 +2,10 @@
 from seekpath.hpkot import SymmetryDetectionError
 
 from aiida.common import exceptions
-from aiida.orm.data.cif import InvalidOccupationsError
-from aiida.orm.utils import WorkflowFactory
+from aiida.engine import calcfunction
+from aiida.plugins import WorkflowFactory
 from aiida.tools import get_kpoints_path
-from aiida.work import calcfunction
-
-from aiida_codtools.common.exceptions import CifParseError
+from aiida.tools.data.cif import InvalidOccupationsError
 
 
 @calcfunction
@@ -25,18 +23,16 @@ def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance):
         This will only be used if the parse_engine is pymatgen
     :returns: the primitive StructureData as determined by SeeKpath
     """
-    import traceback
-
     CifCleanWorkChain = WorkflowFactory('codtools.cif_clean')
 
     try:
-        structure = cif._get_aiida_structure(converter=parse_engine.value, site_tolerance=site_tolerance, store=False)
+        structure = cif.get_structure(converter=parse_engine.value, site_tolerance=site_tolerance, store=False)
     except exceptions.UnsupportedSpeciesError:
         return CifCleanWorkChain.exit_codes.ERROR_CIF_HAS_UNKNOWN_SPECIES
     except InvalidOccupationsError:
         return CifCleanWorkChain.exit_codes.ERROR_CIF_HAS_INVALID_OCCUPANCIES
-    except BaseException:
-        raise CifParseError(traceback.format_exc())
+    except Exception:
+        return CifCleanWorkChain.exit_codes.ERROR_CIF_STRUCTURE_PARSING_FAILED
 
     try:
         seekpath_results = get_kpoints_path(structure, symprec=symprec)

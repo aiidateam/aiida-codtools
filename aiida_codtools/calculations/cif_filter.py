@@ -3,11 +3,4 @@ from aiida_codtools.calculations.cif_base import CifBaseCalculation
 
 
 class CifFilterCalculation(CifBaseCalculation):
-    """
-    Specific input plugin for cif_filter from cod-tools package
-    """
-
-    def _init_internal_params(self):
-        super(CifFilterCalculation, self)._init_internal_params()
-
-        self._default_parser = 'codtools.cif_base'
+    """CalcJob plugin for the `cif_filter` script of the `cod-tools` package."""

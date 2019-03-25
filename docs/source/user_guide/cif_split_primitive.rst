@@ -13,24 +13,24 @@ Supported codes
 
 Inputs
 ------
-* :py:class:`CifData <aiida.orm.data.cif.CifData>`
+* :py:class:`CifData <aiida.orm.nodes.data.cif.CifData>`
     A CIF file.
-* :py:class:`ParameterData <aiida.orm.data.parameter.ParameterData>` (optional)
+* :py:class:`Dict <aiida.orm.node.data.dict.Dict>` (optional)
     Contains the command line parameters, specified in key-value fashion.
     For more information, refer to
     :ref:`inputs for codtools.cif_base plugin<codtools_cif_base_inputs>`.
 
 Outputs
 -------
-* List of :py:class:`CifData <aiida.orm.data.cif.CifData>`
+* List of :py:class:`CifData <aiida.orm.nodes.data.cif.CifData>`
     One or more CIF files.
-* :py:class:`ParameterData <aiida.orm.data.parameter.ParameterData>` (optional)
+* :py:class:`Dict <aiida.orm.node.data.dict.Dict>` (optional)
     Contains lines of output messages and/or errors.
 
 Errors
 ------
 Run-time errors are returned line-by-line in the
-:py:class:`ParameterData <aiida.orm.data.parameter.ParameterData>` object.
+:py:class:`Dict <aiida.orm.node.data.dict.Dict>` object.
 
 .. [#] Incompatible with ``--output-prefixed`` and ``--output-tar`` command
   line options.

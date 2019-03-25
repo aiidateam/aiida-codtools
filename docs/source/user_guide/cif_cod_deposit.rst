@@ -13,9 +13,9 @@ Supported codes
 
 Inputs
 ------
-* :py:class:`CifData <aiida.orm.data.cif.CifData>`
+* :py:class:`CifData <aiida.orm.nodes.data.cif.CifData>`
     A CIF file.
-* :py:class:`ParameterData <aiida.orm.data.parameter.ParameterData>`
+* :py:class:`Dict <aiida.orm.node.data.dict.Dict>`
     Contains deposition information, such as user name, password and
     deposition type:
 
@@ -46,7 +46,7 @@ Inputs
 
 Outputs
 -------
-* :py:class:`ParameterData <aiida.orm.data.parameter.ParameterData>`
+* :py:class:`Dict <aiida.orm.node.data.dict.Dict>`
     Contains the result of deposition:
 
   * ``output_messages``: lines of output messages and/or errors. For
@@ -69,4 +69,4 @@ Outputs
 Errors
 ------
 Run-time errors are returned line-by-line in the ``output_messages`` field
-of :py:class:`ParameterData <aiida.orm.data.parameter.ParameterData>` object.
+of :py:class:`Dict <aiida.orm.node.data.dict.Dict>` object.

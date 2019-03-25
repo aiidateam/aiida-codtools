@@ -1,14 +1,9 @@
 # -*- coding: utf-8 -*-
+from aiida import orm
 from aiida.common import exceptions
-from aiida.orm import Code, Group
-from aiida.orm.data.cif import CifData
-from aiida.orm.data.base import Float, Str
-from aiida.orm.data.parameter import ParameterData
-from aiida.orm.data.structure import StructureData
-from aiida.orm.utils import CalculationFactory
-from aiida.work.workchain import WorkChain, ToContext, if_
+from aiida.engine import WorkChain, ToContext, if_
+from aiida.plugins import CalculationFactory
 
-from aiida_codtools.common.exceptions import CifParseError
 from aiida_codtools.common.resources import get_default_options
 
 
@@ -28,27 +23,27 @@ class CifCleanWorkChain(WorkChain):
     @classmethod
     def define(cls, spec):
         super(CifCleanWorkChain, cls).define(spec)
-        spec.input('cif', valid_type=CifData,
+        spec.input('cif', valid_type=orm.CifData,
             help='The CifData node that is to be cleaned.')
-        spec.input('cif_filter', valid_type=Code,
+        spec.input('cif_filter', valid_type=orm.Code,
             help='The AiiDA code object that references the cod-tools cif_filter script.')
-        spec.input('cif_select', valid_type=Code,
+        spec.input('cif_select', valid_type=orm.Code,
             help='The AiiDA code object that references the cod-tools cif_select script.')
-        spec.input('cif_filter_parameters', valid_type=ParameterData, required=True,
+        spec.input('cif_filter_parameters', valid_type=orm.Dict, required=True,
             help='Parameters to be passed to the `CifFilterCalculation`.')
-        spec.input('cif_select_parameters', valid_type=ParameterData, required=True,
+        spec.input('cif_select_parameters', valid_type=orm.Dict, required=True,
             help='Parameters to be passed to the `CifSelectCalculation`.')
-        spec.input('options', valid_type=ParameterData, default=ParameterData(dict=get_default_options()),
+        spec.input('options', valid_type=orm.Dict, default=orm.Dict(dict=get_default_options()),
             help='Options for the calculations.')
-        spec.input('parse_engine', valid_type=Str, default=Str('pymatgen'),
+        spec.input('parse_engine', valid_type=orm.Str, default=orm.Str('pymatgen'),
             help='The atomic structure engine to parse the cif and create the structure.')
-        spec.input('symprec', valid_type=Float, default=Float(5E-3),
+        spec.input('symprec', valid_type=orm.Float, default=orm.Float(5E-3),
             help='The symmetry precision used by SeeKpath for crystal symmetry refinement.')
-        spec.input('site_tolerance', valid_type=Float, default=Float(5E-4),
+        spec.input('site_tolerance', valid_type=orm.Float, default=orm.Float(5E-4),
             help='The fractional coordinate distance tolerance for finding overlapping sites (pymatgen only).')
-        spec.input('group_cif', valid_type=Group, required=False, non_db=True,
+        spec.input('group_cif', valid_type=orm.Group, required=False, non_db=True,
             help='An optional Group to which the final cleaned CifData node will be added.')
-        spec.input('group_structure', valid_type=Group, required=False, non_db=True,
+        spec.input('group_structure', valid_type=orm.Group, required=False, non_db=True,
             help='An optional Group to which the final reduced StructureData node will be added.')
 
         spec.outline(
@@ -62,9 +57,9 @@ class CifCleanWorkChain(WorkChain):
             cls.results,
         )
 
-        spec.output('cif', valid_type=CifData,
+        spec.output('cif', valid_type=orm.CifData,
             help='The cleaned CifData node.')
-        spec.output('structure', valid_type=StructureData, required=False,
+        spec.output('structure', valid_type=orm.StructureData, required=False,
             help='The primitive cell structure created with SeeKpath from the cleaned CifData.')
 
         spec.exit_code(401, 'ERROR_CIF_FILTER_FAILED',
@@ -72,13 +67,13 @@ class CifCleanWorkChain(WorkChain):
         spec.exit_code(402, 'ERROR_CIF_SELECT_FAILED',
             message='The CifSelectCalculation step failed.')
         spec.exit_code(410, 'ERROR_CIF_HAS_UNKNOWN_SPECIES',
-            message='The10leaned CifData contains sites with unknown species.')
+            message='The cleaned CifData contains sites with unknown species.')
         spec.exit_code(411, 'ERROR_CIF_HAS_UNDEFINED_ATOMIC_SITES',
-            message='The10leaned CifData defines no atomic sites.')
+            message='The cleaned CifData defines no atomic sites.')
         spec.exit_code(412, 'ERROR_CIF_HAS_ATTACHED_HYDROGENS',
-            message='The10leaned CifData defines sites with attached hydrogens with incomplete positional data.')
+            message='The cleaned CifData defines sites with attached hydrogens with incomplete positional data.')
         spec.exit_code(413, 'ERROR_CIF_HAS_INVALID_OCCUPANCIES',
-            message='The10leaned CifData defines sites with invalid atomic occupancies.')
+            message='The cleaned CifData defines sites with invalid atomic occupancies.')
         spec.exit_code(414, 'ERROR_CIF_STRUCTURE_PARSING_FAILED',
             message='Failed to parse a StructureData from the cleaned CifData.')
         spec.exit_code(420, 'ERROR_SEEKPATH_SYMMETRY_DETECTION_FAILED',
@@ -92,20 +87,23 @@ class CifCleanWorkChain(WorkChain):
             'cif': self.inputs.cif,
             'code': self.inputs.cif_filter,
             'parameters': self.inputs.cif_filter_parameters,
-            'options': self.inputs.options.get_dict(),
+            'metadata': {
+                'options': self.inputs.options.get_dict(),
+            }
         }
 
         calculation = self.submit(CifFilterCalculation, **inputs)
-        self.report('submitted {}<{}>'.format(CifFilterCalculation.__name__, calculation.pk))
+        self.report('submitted {}<{}>'.format(CifFilterCalculation.__name__, calculation.uuid))
 
         return ToContext(cif_filter=calculation)
 
     def inspect_filter_calculation(self):
         """Inspect the result of the CifFilterCalculation, verifying that it produced a CifData output node."""
         try:
-            self.ctx.cif = self.ctx.cif_filter.out.cif
+            node = self.ctx.cif_filter
+            self.ctx.cif = node.outputs.cif
         except exceptions.NotExistent:
-            self.report('aborting: the CifFilterCalculation did not return the required cif output')
+            self.report('aborting: CifFilterCalculation<{}> did not return the required cif output'.format(node.uuid))
             return self.exit_codes.ERROR_CIF_FILTER_FAILED
 
     def run_select_calculation(self):
@@ -114,20 +112,23 @@ class CifCleanWorkChain(WorkChain):
             'cif': self.ctx.cif,
             'code': self.inputs.cif_select,
             'parameters': self.inputs.cif_select_parameters,
-            'options': self.inputs.options.get_dict(),
+            'metadata': {
+                'options': self.inputs.options.get_dict(),
+            }
         }
 
         calculation = self.submit(CifSelectCalculation, **inputs)
-        self.report('submitted {}<{}>'.format(CifSelectCalculation.__name__, calculation.pk))
+        self.report('submitted {}<{}>'.format(CifSelectCalculation.__name__, calculation.uuid))
 
         return ToContext(cif_select=calculation)
 
     def inspect_select_calculation(self):
         """Inspect the result of the CifSelectCalculation, verifying that it produced a CifData output node."""
         try:
-            self.ctx.cif = self.ctx.cif_select.out.cif
+            node = self.ctx.cif_select
+            self.ctx.cif = node.outputs.cif
         except exceptions.NotExistent:
-            self.report('aborting: the CifSelectCalculation did not return the required cif output')
+            self.report('aborting: CifSelectCalculation<{}> did not return the required cif output'.format(node.uuid))
             return self.exit_codes.ERROR_CIF_SELECT_FAILED
 
     def should_parse_cif_structure(self):
@@ -162,7 +163,7 @@ class CifCleanWorkChain(WorkChain):
 
         try:
             structure, node = primitive_structure_from_cif.run_get_node(**parse_inputs)
-        except CifParseError:
+        except Exception:
             self.ctx.exit_code = self.exit_codes.ERROR_CIF_STRUCTURE_PARSING_FAILED
             self.report(self.ctx.exit_code.message)
             return

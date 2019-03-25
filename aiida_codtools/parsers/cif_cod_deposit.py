@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import re
+
 from aiida.common.extendeddicts import Enumerate
-from aiida.orm.data.parameter import ParameterData
+from aiida.orm import Dict
+
 from aiida_codtools.parsers.cif_base import CifBaseParser
 from aiida_codtools.calculations.cif_cod_deposit import CifCodDepositCalculation
 
@@ -55,7 +57,7 @@ class CifCodDepositParser(CifBaseParser):
         }
 
         output_nodes = []
-        output_nodes.append(('messages', ParameterData(dict=parameters)))
+        output_nodes.append(('messages', Dict(dict=parameters)))
 
         if status == cod_deposition_states.SUCCESS:
             return True, output_nodes
@@ -68,13 +70,13 @@ class CifCodDepositParser(CifBaseParser):
         status = cod_deposition_states.UNKNOWN
         message = ''
 
-        output = re.sub('^[^:]*cif-deposit\.pl:\s+', '', output)
-        output = re.sub('\n$', '', output)
+        output = re.sub(r'^[^:]*cif-deposit\.pl:\s+', '', output)
+        output = re.sub(r'\n$', '', output)
 
-        dep = re.search('^(structures .+ were successfully deposited into .?COD)$', output)
-        dup = re.search('^(the following structures seem to be already in .?COD):', output, re.IGNORECASE)
-        red = re.search('^(redeposition of structure is unnecessary)', output)
-        lgn = re.search('<p class="error"[^>]*>[^:]+: (.*)', output, re.IGNORECASE)
+        dep = re.search(r'^(structures .+ were successfully deposited into .?COD)$', output)
+        dup = re.search(r'^(the following structures seem to be already in .?COD):', output, re.IGNORECASE)
+        red = re.search(r'^(redeposition of structure is unnecessary)', output)
+        lgn = re.search(r'<p class="error"[^>]*>[^:]+: (.*)', output, re.IGNORECASE)
 
         if dep is not None:
             status = cod_deposition_states.SUCCESS

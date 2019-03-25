@@ -1,113 +1,97 @@
 # -*- coding: utf-8 -*-
-import shutil
-from aiida.common.datastructures import CalcInfo, CodeInfo
-from aiida.common.exceptions import InputValidationError, FeatureNotAvailable
-from aiida.common.utils import classproperty
-from aiida.orm.calculation.job import JobCalculation
-from aiida.orm.data.cif import CifData
-from aiida.orm.data.parameter import ParameterData
-from aiida_codtools.calculations import commandline_params_from_dict
+import copy
+import six
+
+from aiida.common import datastructures
+from aiida.common import exceptions
+from aiida.engine import CalcJob
+from aiida.orm import CifData, Dict
+
+from aiida_codtools.common.utils import cli_parameters_from_dictionary
 
 
-class CifBaseCalculation(JobCalculation):
-    """
-    Generic calculation plugin that should work or can easily be extended
-    to work with any of the scripts of the cod-tools package
-    """
+class CifBaseCalculation(CalcJob):
+    """Generic `CalcJob` implementation that can easily be extended to work with any of the `cod-tools` scripts."""
 
-    def _init_internal_params(self):
-        super(CifBaseCalculation, self)._init_internal_params()
+    _default_parser = 'codtools.cif_base'
+    _default_cli_parameters = {}
 
-        # Name of the default parser
-        self._default_parser = 'codtools.cif_base'
+    @classmethod
+    def define(cls, spec):
+        super(CifBaseCalculation, cls).define(spec)
+        spec.input('metadata.options.input_filename', valid_type=six.string_types, default='aiida.in', non_db=True,
+            help='Filename to which the input for the code that is to be run will be written.')
+        spec.input('metadata.options.output_filename', valid_type=six.string_types, default='aiida.out', non_db=True,
+            help='Filename to which the content of stdout of the code that is to be run will be written.')
+        spec.input('metadata.options.error_filename', valid_type=six.string_types, default='aiida.err', non_db=True,
+            help='Filename to which the content of stdout of the code that is to be run will be written.')
+        spec.input('metadata.options.parser_name', valid_type=six.string_types, default=cls._default_parser, non_db=True,
+            help='Define the parser to be used by setting its entry point name.')
+        spec.input('cif', valid_type=CifData, required=True,
+            help='The CIF to be processed.')
+        spec.input('parameters', valid_type=Dict, required=False,
+            help='Parameters to be used as command line arguments.')
 
-        # Default command line parameters
-        self._default_commandline_params = []
+        spec.output('cif', valid_type=CifData,
+            help='The CIF produced by the script.')
 
-        # Default input and output files
-        self._DEFAULT_INPUT_FILE = 'aiida.in'
-        self._DEFAULT_OUTPUT_FILE = 'aiida.out'
-        self._DEFAULT_ERROR_FILE = 'aiida.err'
+        spec.exit_code(100, 'ERROR_NO_RETRIEVED_FOLDER',
+            message='The retrieved folder data node could not be accessed.')
+        spec.exit_code(110, 'ERROR_NO_OUTPUT_FILES',
+            message='Neither the output for the error file could be read from the retrieved folder.')
+        spec.exit_code(111, 'ERROR_READING_OUTPUT_FILE',
+            message='The output file could not be read from the retrieved folder.')
+        spec.exit_code(112, 'ERROR_READING_ERROR_FILE',
+            message='The error file could not be read from the retrieved folder.')
+        spec.exit_code(113, 'ERROR_EMPTY_OUTPUT_FILE',
+            message='The output file is empty.')
+        spec.exit_code(120, 'ERROR_INVALID_COMMAND_LINE_OPTION',
+            message='Invalid command line option passed.')
+        spec.exit_code(131, 'ERROR_PARSING_CIF_DATA',
+            message='The output file could not be parsed into a CifData object.')
 
-    @classproperty
-    def _use_methods(cls):
-        retdict = JobCalculation._use_methods
-        retdict.update({
-            'cif': {
-                'valid_types': CifData,
-                'additional_parameter': None,
-                'linkname': 'cif',
-                'docstring': 'A CIF file to be processed',
-            },
-            'parameters': {
-                'valid_types': ParameterData,
-                'additional_parameter': None,
-                'linkname': 'parameters',
-                'docstring': 'Parameters used in command line',
-            },
-        })
-        return retdict
-
-    def set_resources(self, resources_dict):
-        """
-        Overrides the original ``set_resouces()`` in order to prevent parallelization, which is not
-        supported and may cause strange behaviour
-
-        :raises `~aiida.common.exceptions.FeatureNotAvailable`: when ``num_machines`` or ``num_mpiprocs_per_machine``
-            are set to anything other than 1
-        """
-        self._validate_resources(**resources_dict)
-        super(CifBaseCalculation, self).set_resources(resources_dict)
-
-    def _validate_resources(self, **kwargs):
+    def _validate_resources(self):
+        """Validate the resources defined in the options."""
+        resources = self.options.resources
 
         for key in ['num_machines', 'num_mpiprocs_per_machine', 'tot_num_mpiprocs']:
-            if key in kwargs and kwargs[key] != 1:
-                raise FeatureNotAvailable(
+            if key in resources and resources[key] != 1:
+                raise exceptions.FeatureNotAvailable(
                     "Cannot set resource '{}' to value '{}' for {}: parallelization is not supported, "
-                    "only a value of '1' is accepted.".format(key, kwargs[key], self.__class__.__name__))
+                    "only a value of '1' is accepted.".format(key, resources[key], self.__class__.__name__))
 
-    def _prepare_for_submission(self, tempfolder, inputdict):
+    def prepare_for_submission(self, folder):
+        """This method is called prior to job submission with a set of calculation input nodes.
+
+        The inputs will be validated and sanitized, after which the necessary input files will be written to disk in a
+        temporary folder. A CalcInfo instance will be returned that contains lists of files that need to be copied to
+        the remote machine before job submission, as well as file lists that are to be retrieved after job completion.
+
+        :param folder: an aiida.common.folders.Folder to temporarily write files on disk
+        :returns: CalcInfo instance
+        """
         try:
-            cif = inputdict.pop(self.get_linkname('cif'))
-        except KeyError:
-            raise InputValidationError('no CIF file is specified for this calculation')
-        if not isinstance(cif, CifData):
-            raise InputValidationError('cif is not of type CifData')
+            parameters = self.inputs.parameters.get_dict()
+        except AttributeError:
+            parameters = {}
 
-        code = inputdict.pop(self.get_linkname('code'), None)
-        parameters = inputdict.pop(self.get_linkname('parameters'), None)
+        self._validate_resources()
 
-        if parameters is None:
-            parameters = ParameterData(dict={})
+        cli_parameters = copy.deepcopy(self._default_cli_parameters)
+        cli_parameters.update(parameters)
 
-        if not isinstance(parameters, ParameterData):
-            raise InputValidationError('parameters is not of type ParameterData')
+        codeinfo = datastructures.CodeInfo()
+        codeinfo.code_uuid = self.inputs.code.uuid
+        codeinfo.cmdline_params = cli_parameters_from_dictionary(cli_parameters)
+        codeinfo.stdin_name = self.options.input_filename
+        codeinfo.stdout_name = self.options.output_filename
+        codeinfo.stderr_name = self.options.error_filename
 
-        if code is None:
-            raise InputValidationError('Code not found in input')
-
-        self._validate_resources(**self.get_resources())
-
-        input_filename = tempfolder.get_abs_path(self._DEFAULT_INPUT_FILE)
-        shutil.copy(cif.get_file_abs_path(), input_filename)
-
-        commandline_params = self._default_commandline_params
-        commandline_params.extend(commandline_params_from_dict(parameters.get_dict()))
-
-        calcinfo = CalcInfo()
-        calcinfo.uuid = self.uuid
-        calcinfo.local_copy_list = []
-        calcinfo.remote_copy_list = []
-        calcinfo.retrieve_list = [self._DEFAULT_OUTPUT_FILE, self._DEFAULT_ERROR_FILE]
-        calcinfo.retrieve_singlefile_list = []
-
-        codeinfo = CodeInfo()
-        codeinfo.cmdline_params = commandline_params
-        codeinfo.stdin_name = self._DEFAULT_INPUT_FILE
-        codeinfo.stdout_name = self._DEFAULT_OUTPUT_FILE
-        codeinfo.stderr_name = self._DEFAULT_ERROR_FILE
-        codeinfo.code_uuid = code.uuid
+        calcinfo = datastructures.CalcInfo()
+        calcinfo.uuid = str(self.uuid)
         calcinfo.codes_info = [codeinfo]
-        
+        calcinfo.retrieve_list = [self.options.output_filename, self.options.error_filename]
+        calcinfo.local_copy_list = [(self.inputs.cif.uuid, self.inputs.cif.filename, self.options.input_filename)]
+        calcinfo.remote_copy_list = []
+
         return calcinfo

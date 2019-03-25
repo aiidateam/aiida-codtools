@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 import re
-from aiida.orm.data.parameter import ParameterData
-from aiida_codtools.parsers import BaseCodtoolsParser
+
+from aiida.orm import Dict
+
+from aiida_codtools.parsers import BaseCodToolsParser
 from aiida_codtools.calculations.cif_cod_check import CifCodCheckCalculation
 
 
-class CifCodCheckParser(BaseCodtoolsParser):
+class CifCodCheckParser(BaseCodToolsParser):
     """
     Specific parser plugin for cif_cod_check from cod-tools package
     """
@@ -39,6 +41,6 @@ class CifCodCheckParser(BaseCodtoolsParser):
         }
 
         output_nodes = []
-        output_nodes.append(('messages', ParameterData(dict=parameters)))
+        output_nodes.append(('messages', Dict(dict=parameters)))
 
         return True, output_nodes

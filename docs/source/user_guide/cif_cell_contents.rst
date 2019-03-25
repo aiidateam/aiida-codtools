@@ -12,19 +12,19 @@ Supported codes
 
 Inputs
 ------
-* :py:class:`CifData <aiida.orm.data.cif.CifData>`
+* :py:class:`CifData <aiida.orm.nodes.data.cif.CifData>`
     A CIF file.
-* :py:class:`ParameterData <aiida.orm.data.parameter.ParameterData>` (optional)
+* :py:class:`Dict <aiida.orm.nodes.data.dict.Dict>` (optional)
     Contains the command line parameters, specified in key-value fashion.
     For more information refer to :ref:`inputs for codtools.cif_base plugin<codtools_cif_base_inputs>`.
 
 Outputs
 -------
-* :py:class:`ParameterData <aiida.orm.data.parameter.ParameterData>`
+* :py:class:`Dict <aiida.orm.nodes.data.dict.Dict>`
     Contains formulae in (`CIF datablock name`,`formula`) pairs. For
     example::
 
-        print load_node(1, parent_class=ParameterData).get_dict()
+        print load_node(1, parent_class=Dict).get_dict()
 
     would print::
 
@@ -39,7 +39,7 @@ Outputs
        CIF file, used for the example above, contains CIF datablocks
        ``data_4000001``, ``data_4000002``, ``data_4000003`` and
        ``data_4000004``.
-* :py:class:`ParameterData <aiida.orm.data.parameter.ParameterData>`
+* :py:class:`Dict <aiida.orm.nodes.data.dict.Dict>`
     Contains lines of output messages and/or errors. For more information
     refer to
     :ref:`outputs for codtools.cif_base plugin<codtools_cif_base_outputs>`.
@@ -47,4 +47,4 @@ Outputs
 Errors
 ------
 Run-time errors are returned line-by-line in the
-:py:class:`ParameterData <aiida.orm.data.parameter.ParameterData>` object.
+:py:class:`Dict <aiida.orm.nodes.data.dict.Dict>` object.

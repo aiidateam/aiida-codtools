@@ -49,7 +49,7 @@ from aiida.cmdline.utils import decorators, echo
     help='Perform a dry-run.')
 @options.VERBOSE(help='Print entries that are skipped.')
 @decorators.with_dbenv()
-def launch(group, database, max_entries, number_species, skip_partial_occupancies, importer_server, importer_db_host,
+def launch_cif_import(group, database, max_entries, number_species, skip_partial_occupancies, importer_server, importer_db_host,
     importer_db_name, importer_db_password, importer_api_url, importer_api_key, count_entries, batch_count, dry_run,
     verbose):
     """Import cif files from various structural databases, store them as CifData nodes and add them to a Group.
@@ -63,11 +63,9 @@ def launch(group, database, max_entries, number_species, skip_partial_occupancie
     from CifFile.StarFile import StarError
     from datetime import datetime
     from urllib2 import HTTPError
-    from aiida.orm import Group, QueryBuilder
-    from aiida.orm.utils import DataFactory
-    from aiida.tools.dbimporters import DbImporterFactory
 
-    CifData = DataFactory('cif')
+    from aiida import orm
+    from aiida.plugins import factories
 
     if not count_entries and group is None:
         raise click.BadParameter('you have to specify a group unless the option --count-entries is specified')
@@ -94,7 +92,7 @@ def launch(group, database, max_entries, number_species, skip_partial_occupancie
     if importer_api_key is not None:
         importer_parameters['api_key'] = importer_api_key
 
-    importer_class = DbImporterFactory(database)
+    importer_class = factories.DbImporterFactory(database)
     importer = importer_class(**importer_parameters)
 
     if database == 'mpds':
@@ -128,7 +126,7 @@ def launch(group, database, max_entries, number_species, skip_partial_occupancie
 
     # Collect the dictionary of not None parameters passed to the launch script and print to screen
     local_vars = locals()
-    for arg in inspect.getargspec(launch.callback).args:
+    for arg in inspect.getargspec(launch_cif_import.callback).args:
         if arg in local_vars and local_vars[arg]:
             launch_paramaters[arg] = local_vars[arg]
 
@@ -146,9 +144,9 @@ def launch(group, database, max_entries, number_species, skip_partial_occupancie
         echo.echo_critical('database query failed: {}'.format(exception))
 
     if not count_entries:
-        builder = QueryBuilder()
-        builder.append(Group, filters={'label': group.label}, tag='group')
-        builder.append(CifData, with_group='group', project='attributes.source.id')
+        builder = orm.QueryBuilder()
+        builder.append(orm.Group, filters={'label': group.label}, tag='group')
+        builder.append(orm.CifData, with_group='group', project='attributes.source.id')
         existing_source_ids = [entry[0] for entry in builder.all()]
 
     counter = 0

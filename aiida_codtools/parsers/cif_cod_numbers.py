@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 import re
-from aiida.orm.data.parameter import ParameterData
-from aiida_codtools.parsers import BaseCodtoolsParser
+
+from aiida.orm import Dict
+
+from aiida_codtools.parsers import BaseCodToolsParser
 from aiida_codtools.calculations.cif_cod_numbers import CifCodNumbersCalculation
 
 
-class CifCodNumbersParser(BaseCodtoolsParser):
+class CifCodNumbersParser(BaseCodToolsParser):
     """
     Specific parser plugin for cif_cod_numbers from cod-tools package
     """
@@ -24,7 +26,7 @@ class CifCodNumbersParser(BaseCodtoolsParser):
                 content = f.readlines()
             lines = [x.strip('\n') for x in content]
             for line in lines:
-                fields = re.split('\s+', line)
+                fields = re.split(r'\s+', line)
                 count = None
                 try:
                     count = int(fields[2])
@@ -51,6 +53,6 @@ class CifCodNumbersParser(BaseCodtoolsParser):
         }
 
         output_nodes = []
-        output_nodes.append(('output', ParameterData(dict=parameters)))
+        output_nodes.append(('output', Dict(dict=parameters)))
 
         return True, output_nodes

@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 import os
-from aiida.orm.data.cif import CifData
-from aiida.orm.data.parameter import ParameterData
-from aiida_codtools.parsers import BaseCodtoolsParser
+
+from aiida.orm import CifData, Dict
+
+from aiida_codtools.parsers import BaseCodToolsParser
 from aiida_codtools.calculations.cif_split_primitive import CifSplitPrimitiveCalculation
 
 
-class CifSplitPrimitiveParser(BaseCodtoolsParser):
+class CifSplitPrimitiveParser(BaseCodToolsParser):
     """
     Specific parser plugin for cif_split_primitive from cod-tools package
     """
@@ -33,7 +34,7 @@ class CifSplitPrimitiveParser(BaseCodtoolsParser):
                 success = True
             for filename in content:
                 path = os.path.join(out_folder.get_abs_path('.'), filename)
-                output_nodes.append(('cif', CifData(file=path)))
+                output_nodes.append(('cif', CifData(filepath=path)))
 
         if output_path is not None:
             with open(output_path) as f:
@@ -44,6 +45,6 @@ class CifSplitPrimitiveParser(BaseCodtoolsParser):
                 'output_messages': content
             }
 
-            output_nodes.append(('messages', ParameterData(dict=messages)))
+            output_nodes.append(('messages', Dict(dict=messages)))
 
         return success, output_nodes

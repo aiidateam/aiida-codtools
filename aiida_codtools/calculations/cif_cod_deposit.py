@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
+from aiida.common import datastructures
+from aiida.common import exceptions
 from aiida_codtools.calculations.cif_base import CifBaseCalculation
-from aiida.common.datastructures import CalcInfo, CodeInfo
-from aiida.common.exceptions import InputValidationError
 
 
 class CifCodDepositCalculation(CifBaseCalculation):
@@ -27,27 +27,26 @@ class CifCodDepositCalculation(CifBaseCalculation):
                              'hold_period']
 
     def _prepare_for_submission(self, tempfolder, inputdict):
-        from aiida.orm.data.cif import CifData
-        from aiida.orm.data.parameter import ParameterData
+        from aiida.orm import CifData, Dict
         from aiida_codtools.calculations import commandline_params_from_dict
         import shutil
 
         try:
             cif = inputdict.pop(self.get_linkname('cif'))
         except KeyError:
-            raise InputValidationError("no CIF file is specified for deposition")
+            raise exceptions.InputValidationError("no CIF file is specified for deposition")
         if not isinstance(cif, CifData):
-            raise InputValidationError("cif is not of type CifData")
+            raise exceptions.InputValidationError("cif is not of type CifData")
 
         parameters = inputdict.pop(self.get_linkname('parameters'), None)
         if parameters is None:
-            parameters = ParameterData(dict={})
-        if not isinstance(parameters, ParameterData):
-            raise InputValidationError("parameters is not of type ParameterData")
+            parameters = Dict(dict={})
+        if not isinstance(parameters, Dict):
+            raise exceptions.InputValidationError("parameters is not of type Dict")
 
         code = inputdict.pop(self.get_linkname('code'), None)
         if code is None:
-            raise InputValidationError("No code found in input")
+            raise exceptions.InputValidationError("No code found in input")
 
         parameters_dict = parameters.get_dict()
 
@@ -71,7 +70,7 @@ class CifCodDepositCalculation(CifBaseCalculation):
         commandline_params.extend(
             commandline_params_from_dict(parameters_dict))
 
-        calcinfo = CalcInfo()
+        calcinfo = datastructures.CalcInfo()
         calcinfo.uuid = self.uuid
         # The command line parameters should be generated from 'parameters'
         calcinfo.local_copy_list = []
@@ -80,7 +79,7 @@ class CifCodDepositCalculation(CifBaseCalculation):
                                   self._DEFAULT_ERROR_FILE]
         calcinfo.retrieve_singlefile_list = []
 
-        codeinfo = CodeInfo()
+        codeinfo = datastructures.CodeInfo()
         codeinfo.cmdline_params = commandline_params
         codeinfo.stdin_name = self._DEFAULT_INPUT_FILE
         codeinfo.stdout_name = self._DEFAULT_OUTPUT_FILE

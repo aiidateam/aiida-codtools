@@ -40,8 +40,8 @@ from aiida.cmdline.utils import decorators
     '-d', '--daemon', is_flag=True, default=False, show_default=True,
     help='Submit the process to the daemon instead of running it locally.')
 @decorators.with_dbenv()
-def launch(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structure, group_workchain, node, max_entries,
-    skip_check, parse_engine, daemon):
+def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structure, group_workchain, node,
+    max_entries, skip_check, parse_engine, daemon):
     """Run the `CifCleanWorkChain` on the entries in a group with raw imported CifData nodes.
 
     It will use the `cif_filter` and `cif_select` scripts of `cod-tools` to clean the input cif file. Additionally, if
@@ -51,13 +51,10 @@ def launch(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structu
     """
     import inspect
     from datetime import datetime
-    from aiida.orm.data.base import Float, Str
-    from aiida.orm.data.parameter import ParameterData
-    from aiida.orm.groups import Group
-    from aiida.orm.node.process import WorkChainNode
-    from aiida.orm.querybuilder import QueryBuilder
-    from aiida.orm.utils import DataFactory, WorkflowFactory
-    from aiida.work.launch import run_get_node, submit
+
+    from aiida import orm
+    from aiida.engine import launch
+    from aiida.plugins import DataFactory, WorkflowFactory
     from aiida_codtools.common.resources import get_default_options
     from aiida_codtools.common.utils import get_input_node
 
@@ -67,7 +64,7 @@ def launch(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structu
     # Collect the dictionary of not None parameters passed to the launch script and print to screen
     local_vars = locals()
     launch_paramaters = {}
-    for arg in inspect.getargspec(launch.callback).args:
+    for arg in inspect.getargspec(launch_cif_clean.callback).args:
         if arg in local_vars and local_vars[arg]:
             launch_paramaters[arg] = local_vars[arg]
 
@@ -79,17 +76,17 @@ def launch(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structu
     if group_cif_raw is not None:
 
         # Get CifData nodes that should actually be submitted according to the input filters
-        builder = QueryBuilder()
-        builder.append(Group, filters={'id': {'==': group_cif_raw.pk}}, tag='group')
+        builder = orm.QueryBuilder()
+        builder.append(orm.Group, filters={'id': {'==': group_cif_raw.pk}}, tag='group')
 
         if skip_check:
             builder.append(CifData, with_group='group', project=['*'])
         else:
             # Get CifData nodes that already have an associated workchain node in the `group_workchain` group.
-            submitted = QueryBuilder()
-            submitted.append(WorkChainNode, tag='workchain')
-            submitted.append(Group, filters={'id': {'==': group_workchain.pk}}, with_node='workchain')
-            submitted.append(CifData, with_outgoing='workchain', tag='data', project=['id'])
+            submitted = orm.QueryBuilder()
+            submitted.append(orm.WorkChainNode, tag='workchain')
+            submitted.append(orm.Group, filters={'id': {'==': group_workchain.pk}}, with_node='workchain')
+            submitted.append(orm.CifData, with_outgoing='workchain', tag='data', project=['id'])
             submitted_nodes = set(pk for entry in submitted.all() for pk in entry)
 
             if submitted_nodes:
@@ -114,13 +111,13 @@ def launch(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structu
 
     counter = 0
 
-    node_cif_filter_parameters = get_input_node(ParameterData, {
+    node_cif_filter_parameters = get_input_node(orm.Dict, {
         'fix-syntax-errors': True,
         'use-c-parser': True,
         'use-datablocks-without-coordinates': True,
     })
 
-    node_cif_select_parameters = get_input_node(ParameterData, {
+    node_cif_select_parameters = get_input_node(orm.Dict, {
         'canonicalize-tag-names': True,
         'dont-treat-dots-as-underscores': True,
         'invert': True,
@@ -128,10 +125,10 @@ def launch(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structu
         'use-c-parser': True,
     })
 
-    node_options = get_input_node(ParameterData, get_default_options())
-    node_parse_engine = get_input_node(Str, parse_engine)
-    node_site_tolerance = get_input_node(Float, 5E-4)
-    node_symprec = get_input_node(Float, 5E-3)
+    node_options = get_input_node(orm.Dict, get_default_options())
+    node_parse_engine = get_input_node(orm.Str, parse_engine)
+    node_site_tolerance = get_input_node(orm.Float, 5E-4)
+    node_symprec = get_input_node(orm.Float, 5E-3)
 
     for cif in nodes:
 
@@ -154,13 +151,13 @@ def launch(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structu
             inputs['group_structure'] = group_structure
 
         if daemon:
-            workchain = submit(CifCleanWorkChain, **inputs)
+            workchain = launch.submit(CifCleanWorkChain, **inputs)
             click.echo('{} | CifData<{}> submitting: {}<{}>'.format(
                 datetime.utcnow().isoformat(), cif.pk, CifCleanWorkChain.__name__, workchain.pk))
         else:
             click.echo('{} | CifData<{}> running: {}'.format(
                 datetime.utcnow().isoformat(), cif.pk, CifCleanWorkChain.__name__))
-            result, workchain = run_get_node(CifCleanWorkChain, **inputs)
+            result, workchain = launch.run_get_node(CifCleanWorkChain, **inputs)
 
         if group_workchain is not None:
             group_workchain.add_nodes([workchain])

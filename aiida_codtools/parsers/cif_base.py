@@ -1,14 +1,93 @@
 # -*- coding: utf-8 -*-
-from aiida_codtools.parsers import BaseCodtoolsParser
-from aiida_codtools.calculations.cif_cell_contents import CifBaseCalculation
+import traceback
+
+from aiida.common import exceptions
+from aiida.parsers.parser import Parser
+from aiida.plugins import CalculationFactory, DataFactory
+
+CifBaseCalculation = CalculationFactory('codtools.cif_base')
+CifData = DataFactory('cif')
 
 
-class CifBaseParser(BaseCodtoolsParser):
-    """
-    Generic parser plugin that should work or can easily be extended
-    to work with any of the scripts of the cod-tools package
-    """
+class CifBaseParser(Parser):
+    """Generic `Parser` implementation that can easily be extended to work with any of the `cod-tools` scripts."""
 
-    def __init__(self, calc):
-        self._supported_calculation_class = CifBaseCalculation
-        super(CifBaseParser, self).__init__(calc)
+    _supported_calculation_class = CifBaseCalculation
+
+    def __init__(self, node):
+        super(CifBaseParser, self).__init__(node)
+        if not issubclass(node.process_class, self._supported_calculation_class):
+            raise exceptions.ParsingError('Node process class must be a {} but node<{}> has process class {}'.format(
+                self._supported_calculation_class, node.uuid, node.process_class))
+
+    def parse(self, **kwargs):
+        """Parse the contents of the output files retrieved in the `FolderData`."""
+        try:
+            output_folder = self.retrieved
+        except exceptions.NotExistent:
+            return self.exit_codes.ERROR_NO_RETRIEVED_FOLDER
+
+        filename_stdout = self.node.get_attribute('output_filename')
+        filename_stderr = self.node.get_attribute('error_filename')
+
+        try:
+            with output_folder.open(filename_stderr, 'r') as handle:
+                exit_code = self.parse_stderr(handle)
+        except (OSError, IOError):
+            self.logger.exception('Failed to read the stderr file\n%s', traceback.format_exc())
+            return self.exit_codes.ERROR_READING_ERROR_FILE
+
+        if exit_code:
+            return exit_code
+
+        try:
+            with output_folder.open(filename_stdout, 'r') as handle:
+                exit_code = self.parse_stdout(handle)
+        except (OSError, IOError):
+            self.logger.exception('Failed to read the stdout file\n%s', traceback.format_exc())
+            return self.exit_codes.ERROR_READING_OUTPUT_FILE
+
+        if exit_code:
+            return exit_code
+
+    def parse_stdout(self, filelike):
+        """Parse the content written by the script to standard out into a `CifData` object.
+
+        :param filelike: filelike object of stdout
+        :returns: an exit code in case of an error, None otherwise
+        """
+        if not filelike.read().strip():
+            return self.exit_codes.ERROR_EMPTY_OUTPUT_FILE
+
+        try:
+            cif = CifData(filepath=filelike.name)
+        except Exception:
+            self.logger.exception('Failed to parse a `CifData` from the stdout file\n%s', traceback.format_exc())
+            return self.exit_codes.ERROR_PARSING_CIF_DATA
+        else:
+            self.out('cif', cif)
+
+        return
+
+    def parse_stderr(self, filelike):
+        """Parse the content written by the script to standard err.
+
+        :param filelike: filelike object of stderr
+        :returns: an exit code in case of an error, None otherwise
+        """
+        MARKER_ERROR = 'ERROR,'
+        MARKER_WARNING = 'WARNING,'
+
+        messages = {'errors': [], 'warnings': []}
+
+        for line in filelike.readlines():
+            if MARKER_ERROR in line:
+                messages['errors'].append(line.split(MARKER_ERROR)[-1].strip())
+            if MARKER_WARNING in line:
+                messages['warnings'].append(line.split(MARKER_WARNING)[-1].strip())
+
+        for error in messages['errors']:
+            if 'unknown option' in error:
+                return self.exit_codes.ERROR_INVALID_COMMAND_LINE_OPTION
+
+        return

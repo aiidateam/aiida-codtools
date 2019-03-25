@@ -4,24 +4,18 @@ from aiida_codtools.calculations.cif_base import CifBaseCalculation
 
 
 class CifSplitPrimitiveCalculation(CifBaseCalculation):
-    """
-    Specific input plugin for cif_split_primitive from cod-tools package
-    """
+    """CalcJob plugin for the `cif_split_primitive` script of the `cod-tools` package."""
 
-    def _init_internal_params(self):
-        super(CifSplitPrimitiveCalculation, self)._init_internal_params()
+    _default_parser = 'codtools.cif_split_primitive'
+    _directory_split = 'split'
 
-        self._default_parser = 'codtools.cif_split_primitive'
+    def prepare_for_submission(self, folder):
+        calcinfo = super(CifSplitPrimitiveCalculation, self).prepare_for_submission(folder)
 
-        self._SPLIT_DIR = 'split'
-
-    def _prepare_for_submission(self, tempfolder, inputdict):
-        calcinfo = super(CifSplitPrimitiveCalculation, self)._prepare_for_submission(tempfolder, inputdict)
-
-        split_dir = tempfolder.get_abs_path(self._SPLIT_DIR)
+        split_dir = folder.get_abs_path(self._directory_split)
         os.mkdir(split_dir)
 
-        calcinfo.codes_info[0].cmdline_params.extend(['--output-dir', self._SPLIT_DIR])
-        calcinfo.retrieve_list.append(self._SPLIT_DIR)
-        
+        calcinfo.codes_info[0].cmdline_params.extend(['--output-dir', self._directory_split])
+        calcinfo.retrieve_list.append(self._directory_split)
+
         return calcinfo

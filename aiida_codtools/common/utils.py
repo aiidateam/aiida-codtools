@@ -10,21 +10,19 @@ def get_input_node(cls, value):
     :param cls: the `Node` class
     :param value: the value of the `Node`
     """
-    from aiida.orm.querybuilder import QueryBuilder
-    from aiida.orm.data.base import Bool, Float, Int, Str
-    from aiida.orm.data.parameter import ParameterData
+    from aiida import orm
 
-    if cls in (Bool, Float, Int, Str):
+    if cls in (orm.Bool, orm.Float, orm.Int, orm.Str):
 
-        result = QueryBuilder().append(cls, filters={'attributes.value': value}).first()
+        result = orm.QueryBuilder().append(cls, filters={'attributes.value': value}).first()
 
         if result is None:
             node = cls(value).store()
         else:
             node = result[0]
 
-    elif cls is ParameterData:
-        result = QueryBuilder().append(cls, filters={'attributes': {'==': value}}).first()
+    elif cls is orm.Dict:
+        result = orm.QueryBuilder().append(cls, filters={'attributes': {'==': value}}).first()
 
         if result is None:
             node = cls(dict=value).store()
@@ -35,3 +33,39 @@ def get_input_node(cls, value):
         raise NotImplementedError
 
     return node
+
+
+def cli_parameters_from_dictionary(dictionary):
+    """Format command line parameters from a python dictionary.
+
+    :param dictionary: dictionary with command line parameter definitions
+    :return: a string with the formatted command line parameters
+    """
+    result = []
+
+    for key, value in dictionary.items():
+
+        if value is None:
+            continue
+
+        if not isinstance(value, list):
+            value = [value]
+
+        string_key = None
+
+        if len(key) == 1:
+            string_key = '-{}'.format(key)
+        else:
+            string_key = '--{}'.format(key)
+
+        for sub_value in value:
+
+            if isinstance(sub_value, bool) and sub_value is False:
+                continue
+
+            result.append(string_key)
+
+            if not isinstance(sub_value, bool):
+                result.append(sub_value)
+
+    return result

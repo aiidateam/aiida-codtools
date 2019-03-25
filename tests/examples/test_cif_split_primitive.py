@@ -22,7 +22,7 @@ from aiida.common.example_helpers import test_and_get_code
 ################################################################
 
 CifData = DataFactory('cif')
-ParameterData = DataFactory('parameter')
+Dict = DataFactory('dict')
 submit_test = None
 codename = None
 options = {}
@@ -55,11 +55,11 @@ code = test_and_get_code(codename, expected_code_type="codtools.cif_split_primit
 
 cif = None
 if len(files) == 1:
-    cif = CifData(file=os.path.abspath(files[0]))
+    cif = CifData(filepath=os.path.abspath(files[0]))
 else:
     raise ValueError("Please specify a single CIF file")
 
-parameters = ParameterData(dict=options)
+parameters = Dict(dict=options)
 computer = Computer.get(Computer.list_names()[0])
 
 calc = code.new_calc()

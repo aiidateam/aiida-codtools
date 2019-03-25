@@ -12,8 +12,8 @@ import unittest
 from aiida.backends.testbase import AiidaTestCase
 from aiida.common.exceptions import FeatureNotAvailable, PluginInternalError
 from aiida.common.folders import SandboxFolder
-from aiida.orm.data.cif import CifData, has_pycifrw
-from aiida.orm.data.parameter import ParameterData
+from aiida.orm import CifData, Dict
+from aiida.orm.nodes.data.cif import has_pycifrw
 from aiida_codtools.calculations import commandline_params_from_dict
 from aiida_codtools.calculations.cif_base import CifBaseCalculation
 from aiida_codtools.calculations.cif_cell_contents import CifCellContentsCalculation
@@ -82,7 +82,7 @@ class TestCodtools(AiidaTestCase):
         self.assertEquals(nodes[0][1].generate_md5(),
                           'b5bb739a254514961a157503daf715eb')
         self.assertEquals(nodes[1][0], 'messages')
-        self.assertEquals(isinstance(nodes[1][1], ParameterData), True)
+        self.assertEquals(isinstance(nodes[1][1], Dict), True)
 
     def test_3(self):
         stdout_messages = ["NOTE, symmetry operator '-x,-y,-z' is missing"]
@@ -107,7 +107,7 @@ class TestCodtools(AiidaTestCase):
         self.assertEquals(success, True)
         self.assertEquals(len(nodes), 1)
         self.assertEquals(nodes[0][0], 'messages')
-        self.assertEquals(isinstance(nodes[0][1], ParameterData), True)
+        self.assertEquals(isinstance(nodes[0][1], Dict), True)
         self.assertEquals(nodes[0][1].get_dict()['output_messages'],
                           stdout_messages + stderr_messages)
 
@@ -270,7 +270,7 @@ cif_cod_check: - data_4000001: _publ_section_title is undefined"""
                 calc.set_resources({key: 2})
 
             # Inner modification of resource parameters:
-            calc._set_attr('jobresource_params', {key: 2})
+            calc.set_attribute('jobresource_params', {key: 2})
             with self.assertRaises(FeatureNotAvailable):
                 calc._validate_resources(**calc.get_resources())
 

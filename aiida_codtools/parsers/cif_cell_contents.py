@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 import re
-from aiida.orm.data.parameter import ParameterData
-from aiida_codtools.parsers import BaseCodtoolsParser
+
+from aiida.orm import Dict
+
+from aiida_codtools.parsers import BaseCodToolsParser
 from aiida_codtools.calculations.cif_cell_contents import CifCellContentsCalculation
 
 
-class CifCellContentsParser(BaseCodtoolsParser):
+class CifCellContentsParser(BaseCodToolsParser):
     """
     Specific parser plugin for cif_cell_contents from cod-tools package
     """
@@ -24,7 +26,7 @@ class CifCellContentsParser(BaseCodtoolsParser):
                 content = f.readlines()
             content = [x.strip('\n') for x in content]
             for line in content:
-                datablock, formula = re.split('\s+', line, 1)
+                datablock, formula = re.split(r'\s+', line, 1)
                 formulae[datablock] = formula
 
         messages = []
@@ -35,8 +37,8 @@ class CifCellContentsParser(BaseCodtoolsParser):
             self._check_failed(messages)
 
         output_nodes = []
-        output_nodes.append(('formulae', ParameterData(dict={'formulae': formulae})))
-        output_nodes.append(('messages', ParameterData(dict={'output_messages': messages})))
+        output_nodes.append(('formulae', Dict(dict={'formulae': formulae})))
+        output_nodes.append(('messages', Dict(dict={'output_messages': messages})))
 
         success = True
         if len(formulae.keys()) == 0:

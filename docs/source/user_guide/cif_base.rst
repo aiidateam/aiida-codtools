@@ -34,16 +34,16 @@ Supported codes
 
 Inputs
 ------
-* :py:class:`CifData <aiida.orm.data.cif.CifData>`
+* :py:class:`CifData <aiida.orm.nodes.data.cif.CifData>`
     A CIF file.
-* :py:class:`ParameterData <aiida.orm.data.parameter.ParameterData>` (optional)
+* :py:class:`Dict <aiida.orm.nodes.data.dict.Dict>` (optional)
     Contains the command line parameters, specified in key-value fashion.
     Leading dashes (single or double) must be stripped from the keys.
     Values can be arrays with multiple items. Keys without values should
     point to boolean ``True`` value. In example::
 
         calc = Code.get_from_string('cif_filter').new_calc()
-        calc.use_parameters(ParameterData(dict={
+        calc.use_parameters(Dict(dict={
                 's'                       : True,
                 'exclude-empty-tags'      : True,
                 'dont-reformat-spacegroup': True,
@@ -69,12 +69,12 @@ Inputs
 
 Outputs
 -------
-* :py:class:`CifData <aiida.orm.data.cif.CifData>`
+* :py:class:`CifData <aiida.orm.nodes.data.cif.CifData>`
     A CIF file.
-* :py:class:`ParameterData <aiida.orm.data.parameter.ParameterData>` (optional)
+* :py:class:`Dict <aiida.orm.nodes.data.dict.Dict>` (optional)
     Contains lines of output messages and/or errors. For example::
 
-        print load_node(1, parent_class=ParameterData).get_dict()
+        print load_node(1, parent_class=Dict).get_dict()
 
     would print::
 
@@ -83,7 +83,7 @@ Outputs
 Errors
 ------
 Run-time errors are returned line-by-line in the
-:py:class:`ParameterData <aiida.orm.data.parameter.ParameterData>` object.
+:py:class:`Dict <aiida.orm.nodes.data.dict.Dict>` object.
 
 .. rubric:: Footnotes
 
