@@ -3,12 +3,9 @@ from __future__ import absolute_import
 import copy
 import six
 
-from aiida.common import datastructures
-from aiida.common import exceptions
+from aiida.common import datastructures, exceptions
 from aiida.engine import CalcJob
 from aiida.orm import CifData, Dict
-
-from aiida_codtools.common.utils import cli_parameters_from_dictionary
 
 
 class CifBaseCalculation(CalcJob):
@@ -21,22 +18,17 @@ class CifBaseCalculation(CalcJob):
     def define(cls, spec):
         # yapf: disable
         super(CifBaseCalculation, cls).define(spec)
-        spec.input('metadata.options.input_filename', valid_type=six.string_types, default='aiida.in', non_db=True,
+        spec.input('metadata.options.input_filename', valid_type=six.string_types, default='aiida.in',
             help='Filename to which the input for the code that is to be run will be written.')
-        spec.input('metadata.options.output_filename', valid_type=six.string_types, default='aiida.out', non_db=True,
+        spec.input('metadata.options.output_filename', valid_type=six.string_types, default='aiida.out',
             help='Filename to which the content of stdout of the code that is to be run will be written.')
-        spec.input('metadata.options.error_filename', valid_type=six.string_types, default='aiida.err', non_db=True,
+        spec.input('metadata.options.error_filename', valid_type=six.string_types, default='aiida.err',
             help='Filename to which the content of stdout of the code that is to be run will be written.')
-        spec.input('metadata.options.parser_name', valid_type=six.string_types, default=cls._default_parser, non_db=True,
+        spec.input('metadata.options.parser_name', valid_type=six.string_types, default=cls._default_parser,
             help='Define the parser to be used by setting its entry point name.')
-        spec.input('cif', valid_type=CifData, required=True,
-            help='The CIF to be processed.')
-        spec.input('parameters', valid_type=Dict, required=False,
-            help='Parameters to be used as command line arguments.')
-
-        spec.output('cif', valid_type=CifData,
-            help='The CIF produced by the script.')
-
+        spec.input('cif', valid_type=CifData, required=True, help='The CIF to be processed.')
+        spec.input('parameters', valid_type=Dict, required=False, help='Command line parameters.')
+        spec.output('cif', valid_type=CifData, help='The CIF produced by the script.')
         spec.exit_code(100, 'ERROR_NO_RETRIEVED_FOLDER',
             message='The retrieved folder data node could not be accessed.')
         spec.exit_code(110, 'ERROR_NO_OUTPUT_FILES',
@@ -72,6 +64,8 @@ class CifBaseCalculation(CalcJob):
         :param folder: an aiida.common.folders.Folder to temporarily write files on disk
         :returns: CalcInfo instance
         """
+        from aiida_codtools.common.cli import CliParameters
+
         try:
             parameters = self.inputs.parameters.get_dict()
         except AttributeError:
@@ -84,7 +78,7 @@ class CifBaseCalculation(CalcJob):
 
         codeinfo = datastructures.CodeInfo()
         codeinfo.code_uuid = self.inputs.code.uuid
-        codeinfo.cmdline_params = cli_parameters_from_dictionary(cli_parameters)
+        codeinfo.cmdline_params = CliParameters.from_dictionary(cli_parameters).get_list()
         codeinfo.stdin_name = self.options.input_filename
         codeinfo.stdout_name = self.options.output_filename
         codeinfo.stderr_name = self.options.error_filename

@@ -35,7 +35,7 @@ class CifSplitPrimitiveParser(BaseCodToolsParser):
                 success = True
             for filename in content:
                 path = os.path.join(out_folder.get_abs_path('.'), filename)
-                output_nodes.append(('cif', CifData(filepath=path)))
+                output_nodes.append(('cif', CifData(file=path)))
 
         if output_path is not None:
             with open(output_path) as f:

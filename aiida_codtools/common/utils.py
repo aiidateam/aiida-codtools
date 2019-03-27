@@ -35,39 +35,3 @@ def get_input_node(cls, value):
         raise NotImplementedError
 
     return node
-
-
-def cli_parameters_from_dictionary(dictionary):
-    """Format command line parameters from a python dictionary.
-
-    :param dictionary: dictionary with command line parameter definitions
-    :return: a string with the formatted command line parameters
-    """
-    result = []
-
-    for key, value in dictionary.items():
-
-        if value is None:
-            continue
-
-        if not isinstance(value, list):
-            value = [value]
-
-        string_key = None
-
-        if len(key) == 1:
-            string_key = '-{}'.format(key)
-        else:
-            string_key = '--{}'.format(key)
-
-        for sub_value in value:
-
-            if isinstance(sub_value, bool) and sub_value is False:
-                continue
-
-            result.append(string_key)
-
-            if not isinstance(sub_value, bool):
-                result.append(sub_value)
-
-    return result

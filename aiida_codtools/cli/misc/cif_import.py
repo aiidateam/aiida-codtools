@@ -51,9 +51,9 @@ from aiida.cmdline.utils import decorators, echo
     help='Perform a dry-run.')
 @options.VERBOSE(help='Print entries that are skipped.')
 @decorators.with_dbenv()
-def launch_cif_import(group, database, max_entries, number_species, skip_partial_occupancies, importer_server, importer_db_host,
-    importer_db_name, importer_db_password, importer_api_url, importer_api_key, count_entries, batch_count, dry_run,
-    verbose):
+def launch_cif_import(group, database, max_entries, number_species, skip_partial_occupancies, importer_server,
+    importer_db_host, importer_db_name, importer_db_password, importer_api_url, importer_api_key, count_entries,
+    batch_count, dry_run, verbose):
     """Import cif files from various structural databases, store them as CifData nodes and add them to a Group.
 
     Note that to determine which cif files are already contained within the Group in order to avoid duplication,
@@ -69,6 +69,7 @@ def launch_cif_import(group, database, max_entries, number_species, skip_partial
 
     from aiida import orm
     from aiida.plugins import factories
+    from aiida_codtools.common.cli import echo_utc
 
     if not count_entries and group is None:
         raise click.BadParameter('you have to specify a group unless the option --count-entries is specified')
@@ -143,7 +144,7 @@ def launch_cif_import(group, database, max_entries, number_species, skip_partial
 
     try:
         query_results = importer.query(**query_parameters)
-    except BaseException as exception:
+    except Exception as exception:
         echo.echo_critical('database query failed: {}'.format(exception))
 
     if not count_entries:
@@ -166,33 +167,30 @@ def launch_cif_import(group, database, max_entries, number_species, skip_partial
 
         if source_id in existing_source_ids:
             if verbose:
-                click.echo('{} | Cif<{}> skipping: already present in group {}'.format(
-                    datetime.utcnow().isoformat(), source_id, group.name))
+                echo_utc('Cif<{}> skipping: already present in group {}'.format(source_id, group.name))
             continue
 
         try:
             cif = entry.get_cif_node()
         except (AttributeError, UnicodeDecodeError, StarError, HTTPError) as exception:
             if verbose:
-                click.echo('{} | Cif<{}> skipping: encountered an error retrieving cif data: {}'.format(
-                    datetime.utcnow().isoformat(), source_id, exception.__class__.__name__))
+                echo_utc('Cif<{}> skipping: encountered an error retrieving cif data: {}'.format(source_id, exception.__class__.__name__))
         else:
             if skip_partial_occupancies and cif.has_partial_occupancies():
                 if verbose:
-                    click.echo('{} | Cif<{}> skipping: contains partial occupancies'.format(
-                        datetime.utcnow().isoformat(), source_id))
+                    echo_utc('Cif<{}> skipping: contains partial occupancies'.format(source_id))
             else:
                 if not dry_run:
                     batch.append(cif)
-                    template = '{} | Cif<{}> adding: new CifData<{}> to group {}'
+                    template = 'Cif<{}> adding: new CifData<{}> to group {}'
                 else:
-                    template = '{} | Cif<{}> would have added: CifData<{}> to group {}'
+                    template = 'Cif<{}> would have added: CifData<{}> to group {}'
 
-                click.echo(template.format(datetime.utcnow().isoformat(), source_id, cif.uuid, group.name))
+                echo_utc(template.format(source_id, cif.uuid, group.name))
                 counter += 1
 
         if not dry_run and counter % batch_count == 0:
-            click.echo('{} | Storing batch of {} CifData nodes'.format(datetime.utcnow().isoformat(), len(batch)))
+            echo_utc('Storing batch of {} CifData nodes'.format(len(batch)))
             nodes = [node.store() for node in batch]
             group.add_nodes(nodes)
             batch = []
@@ -205,7 +203,7 @@ def launch_cif_import(group, database, max_entries, number_species, skip_partial
         return
 
     if not dry_run and batch:
-        click.echo('{} | Storing batch of {} CifData nodes'.format(datetime.utcnow().isoformat(), len(batch)))
+        echo_utc('Storing batch of {} CifData nodes'.format(len(batch)))
         nodes = [node.store() for node in batch]
         group.add_nodes(nodes)
 

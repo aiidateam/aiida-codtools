@@ -58,6 +58,7 @@ def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, gro
     from aiida import orm
     from aiida.engine import launch
     from aiida.plugins import DataFactory, WorkflowFactory
+    from aiida_codtools.common.cli import echo_utc
     from aiida_codtools.common.resources import get_default_options
     from aiida_codtools.common.utils import get_input_node
 
@@ -155,11 +156,9 @@ def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, gro
 
         if daemon:
             workchain = launch.submit(CifCleanWorkChain, **inputs)
-            click.echo('{} | CifData<{}> submitting: {}<{}>'.format(
-                datetime.utcnow().isoformat(), cif.pk, CifCleanWorkChain.__name__, workchain.pk))
+            echo_utc('CifData<{}> submitting: {}<{}>'.format(cif.pk, CifCleanWorkChain.__name__, workchain.pk))
         else:
-            click.echo('{} | CifData<{}> running: {}'.format(
-                datetime.utcnow().isoformat(), cif.pk, CifCleanWorkChain.__name__))
+            echo_utc('CifData<{}> running: {}'.format(cif.pk, CifCleanWorkChain.__name__))
             _, workchain = launch.run_get_node(CifCleanWorkChain, **inputs)
 
         if group_workchain is not None:

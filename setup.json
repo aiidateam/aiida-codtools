@@ -30,7 +30,7 @@
             "codtools.cif_clean = aiida_codtools.workflows.cif_clean:CifCleanWorkChain"
         ],
         "console_scripts": [
-            "launch_calculation_cif_filter = aiida_codtools.cli.calculations.cif_filter:launch_cif_filter",
+            "launch_calculation_cod_tools = aiida_codtools.cli.calculations.cod_tools:cli",
             "launch_misc_cif_import = aiida_codtools.cli.misc.cif_import:launch_cif_import",
             "launch_workflow_cif_clean = aiida_codtools.cli.workflows.cif_clean:launch_cif_clean"
         ]

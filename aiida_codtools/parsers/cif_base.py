@@ -45,6 +45,7 @@ class CifBaseParser(Parser):
 
         try:
             with output_folder.open(filename_stdout, 'r') as handle:
+                handle.seek(0)
                 exit_code = self.parse_stdout(handle)
         except (OSError, IOError):
             self.logger.exception('Failed to read the stdout file\n%s', traceback.format_exc())
@@ -63,7 +64,8 @@ class CifBaseParser(Parser):
             return self.exit_codes.ERROR_EMPTY_OUTPUT_FILE
 
         try:
-            cif = CifData(filepath=filelike.name)
+            filelike.seek(0)
+            cif = CifData(file=filelike)
         except Exception:
             self.logger.exception('Failed to parse a `CifData` from the stdout file\n%s', traceback.format_exc())
             return self.exit_codes.ERROR_PARSING_CIF_DATA
