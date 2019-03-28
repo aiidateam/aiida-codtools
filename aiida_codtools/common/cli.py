@@ -3,14 +3,14 @@ from __future__ import absolute_import
 
 import collections
 import itertools
-import six
 import shlex
+import six
+from six.moves import zip
 
 import click
 import tabulate
 
 from aiida.cmdline.utils import echo
-from six.moves import zip
 
 
 def echo_utc(string):
@@ -35,6 +35,7 @@ class CliParameters(object):  # pylint: disable=useless-object-inheritance
 
         :param parameters: dictionary representing the command line parameters
         """
+        self._parameters = None
         self.parameters = parameters
 
     @property
@@ -183,7 +184,7 @@ class CliRunner(object):  # pylint: disable=useless-object-inheritance
         echo.echo_info('Running {}'.format(self.process_name))
         try:
             _, node = launch.run_get_node(self.process, **self.inputs)
-        except Exception as exception:
+        except Exception as exception:  # pylint: disable=broad-except
             echo.echo_critical('an exception occurred during execution: {}'.format(str(exception)))
 
         if node.is_killed:

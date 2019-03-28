@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Generic `Parser` implementation that can easily be extended to work with any of the `cod-tools` scripts."""
 from __future__ import absolute_import
 import traceback
 
@@ -6,8 +7,8 @@ from aiida.common import exceptions
 from aiida.parsers.parser import Parser
 from aiida.plugins import CalculationFactory, DataFactory
 
-CifBaseCalculation = CalculationFactory('codtools.cif_base')
-CifData = DataFactory('cif')
+CifBaseCalculation = CalculationFactory('codtools.cif_base')  # pylint: disable=invalid-name
+CifData = DataFactory('cif')  # pylint: disable=invalid-name
 
 
 class CifBaseParser(Parser):
@@ -66,7 +67,7 @@ class CifBaseParser(Parser):
         try:
             filelike.seek(0)
             cif = CifData(file=filelike)
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             self.logger.exception('Failed to parse a `CifData` from the stdout file\n%s', traceback.format_exc())
             return self.exit_codes.ERROR_PARSING_CIF_DATA
         else:
@@ -80,16 +81,16 @@ class CifBaseParser(Parser):
         :param filelike: filelike object of stderr
         :returns: an exit code in case of an error, None otherwise
         """
-        MARKER_ERROR = 'ERROR,'
-        MARKER_WARNING = 'WARNING,'
+        marker_error = 'ERROR,'
+        marker_warning = 'WARNING,'
 
         messages = {'errors': [], 'warnings': []}
 
         for line in filelike.readlines():
-            if MARKER_ERROR in line:
-                messages['errors'].append(line.split(MARKER_ERROR)[-1].strip())
-            if MARKER_WARNING in line:
-                messages['warnings'].append(line.split(MARKER_WARNING)[-1].strip())
+            if marker_error in line:
+                messages['errors'].append(line.split(marker_error)[-1].strip())
+            if marker_warning in line:
+                messages['warnings'].append(line.split(marker_warning)[-1].strip())
 
         for error in messages['errors']:
             if 'unknown option' in error:

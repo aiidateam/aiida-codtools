@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Common utilities related to calculation job resources."""
 
 
 def get_default_options(num_machines=1, max_wallclock_seconds=1800, withmpi=False):

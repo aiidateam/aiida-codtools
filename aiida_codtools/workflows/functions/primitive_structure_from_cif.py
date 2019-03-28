@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Calculation function to generate a primitive structure from a `CifData` using Seekpath."""
 from __future__ import absolute_import
 from seekpath.hpkot import SymmetryDetectionError
 
@@ -24,7 +25,7 @@ def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance):
         This will only be used if the parse_engine is pymatgen
     :returns: the primitive StructureData as determined by SeeKpath
     """
-    CifCleanWorkChain = WorkflowFactory('codtools.cif_clean')
+    CifCleanWorkChain = WorkflowFactory('codtools.cif_clean')  # pylint: disable=invalid-name
 
     try:
         structure = cif.get_structure(converter=parse_engine.value, site_tolerance=site_tolerance, store=False)
@@ -32,7 +33,7 @@ def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance):
         return CifCleanWorkChain.exit_codes.ERROR_CIF_HAS_UNKNOWN_SPECIES
     except InvalidOccupationsError:
         return CifCleanWorkChain.exit_codes.ERROR_CIF_HAS_INVALID_OCCUPANCIES
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         return CifCleanWorkChain.exit_codes.ERROR_CIF_STRUCTURE_PARSING_FAILED
 
     try:

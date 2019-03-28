@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=inconsistent-return-statements
+"""WorkChain to clean a `CifData` using `cif_filter` and `cif_select` from cod-tools and parse a `StructureData`."""
+# pylint: disable=inconsistent-return-statements,no-member
 from __future__ import absolute_import
 from aiida import orm
 from aiida.common import exceptions
@@ -8,8 +9,8 @@ from aiida.plugins import CalculationFactory
 
 from aiida_codtools.common.resources import get_default_options
 
-CifFilterCalculation = CalculationFactory('codtools.cif_filter')
-CifSelectCalculation = CalculationFactory('codtools.cif_select')
+CifFilterCalculation = CalculationFactory('codtools.cif_filter')  # pylint: disable=invalid-name
+CifSelectCalculation = CalculationFactory('codtools.cif_select')  # pylint: disable=invalid-name
 
 
 class CifCleanWorkChain(WorkChain):
@@ -165,7 +166,7 @@ class CifCleanWorkChain(WorkChain):
 
         try:
             structure, node = primitive_structure_from_cif.run_get_node(**parse_inputs)
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             self.ctx.exit_code = self.exit_codes.ERROR_CIF_STRUCTURE_PARSING_FAILED
             self.report(self.ctx.exit_code.message)
             return

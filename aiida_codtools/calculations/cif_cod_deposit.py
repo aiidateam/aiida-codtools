@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""CalcJob plugin for the `cif_cod_deposit` script of the `cod-tools` package."""
 from __future__ import absolute_import
 from aiida.common import datastructures
 from aiida.common import exceptions

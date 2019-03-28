@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Command line interface script to launch `CifCleanWorkChain` per node or in bulk."""
 # yapf: disable
 from __future__ import absolute_import
 import click
@@ -62,8 +63,8 @@ def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, gro
     from aiida_codtools.common.resources import get_default_options
     from aiida_codtools.common.utils import get_input_node
 
-    CifData = DataFactory('cif')
-    CifCleanWorkChain = WorkflowFactory('codtools.cif_clean')
+    CifData = DataFactory('cif')  # pylint: disable=invalid-name
+    CifCleanWorkChain = WorkflowFactory('codtools.cif_clean')  # pylint: disable=invalid-name
 
     # Collect the dictionary of not None parameters passed to the launch script and print to screen
     local_vars = locals()

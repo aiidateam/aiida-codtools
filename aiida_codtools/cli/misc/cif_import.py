@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Command line interface script to import CIF files from external databases into `CifData` nodes."""
 # yapf: disable
 from __future__ import absolute_import
 import click
@@ -61,7 +62,7 @@ def launch_cif_import(group, database, max_entries, number_species, skip_partial
     is no guarantee that these id's do not overlap between different structural databases and we do not check
     explicitly for the database, it is advised to use separate groups for different structural databases.
     """
-    # pylint: disable=too-many-arguments,too-many-locals,too-many-statements,too-many-branches
+    # pylint: disable=too-many-arguments,too-many-locals,too-many-statements,too-many-branches,import-error
     import inspect
     from CifFile.StarFile import StarError
     from datetime import datetime
@@ -144,7 +145,7 @@ def launch_cif_import(group, database, max_entries, number_species, skip_partial
 
     try:
         query_results = importer.query(**query_parameters)
-    except Exception as exception:
+    except Exception as exception:  # pylint: disable=broad-except
         echo.echo_critical('database query failed: {}'.format(exception))
 
     if not count_entries:
@@ -174,7 +175,8 @@ def launch_cif_import(group, database, max_entries, number_species, skip_partial
             cif = entry.get_cif_node()
         except (AttributeError, UnicodeDecodeError, StarError, HTTPError) as exception:
             if verbose:
-                echo_utc('Cif<{}> skipping: encountered an error retrieving cif data: {}'.format(source_id, exception.__class__.__name__))
+                name = exception.__class__.__name__
+                echo_utc('Cif<{}> skipping: encountered an error retrieving cif data: {}'.format(source_id, name))
         else:
             if skip_partial_occupancies and cif.has_partial_occupancies():
                 if verbose:

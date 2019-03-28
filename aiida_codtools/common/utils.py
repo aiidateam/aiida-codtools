@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Common utilities."""
 
 from __future__ import absolute_import
 

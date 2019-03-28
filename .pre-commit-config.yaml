@@ -9,6 +9,14 @@
     args: ['-i']
     exclude: &exclude_files >
       (?x)^(
+        aiida_codtools/calculations/cif_cell_contents.py|
+        aiida_codtools/calculations/cif_cod_deposit.py|
+        aiida_codtools/calculations/cif_cod_numbers.py|
+        aiida_codtools/parsers/cif_cod_check.py|
+        aiida_codtools/parsers/cif_cod_deposit.py|
+        aiida_codtools/parsers/cif_cod_numbers.py|
+        aiida_codtools/parsers/cif_cell_contents.py|
+        aiida_codtools/parsers/cif_split_primitive.py|
         docs/.*|
         tests/.*
       )$

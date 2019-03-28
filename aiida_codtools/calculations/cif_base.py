@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Generic `CalcJob` implementation that can easily be extended to work with any of the `cod-tools` scripts."""
 from __future__ import absolute_import
 import copy
 import six
