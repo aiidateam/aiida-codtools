@@ -29,7 +29,6 @@ class CifBaseCalculation(CalcJob):
             help='Define the parser to be used by setting its entry point name.')
         spec.input('cif', valid_type=CifData, required=True, help='The CIF to be processed.')
         spec.input('parameters', valid_type=Dict, required=False, help='Command line parameters.')
-        spec.output('cif', valid_type=CifData, help='The CIF produced by the script.')
         spec.exit_code(100, 'ERROR_NO_RETRIEVED_FOLDER',
             message='The retrieved folder data node could not be accessed.')
         spec.exit_code(110, 'ERROR_NO_OUTPUT_FILES',
@@ -42,6 +41,8 @@ class CifBaseCalculation(CalcJob):
             message='The output file is empty.')
         spec.exit_code(120, 'ERROR_INVALID_COMMAND_LINE_OPTION',
             message='Invalid command line option passed.')
+        spec.exit_code(130, 'ERROR_PARSING_OUTPUT_DATA',
+            message='The output file could not be parsed.')
         spec.exit_code(131, 'ERROR_PARSING_CIF_DATA',
             message='The output file could not be parsed into a CifData object.')
 

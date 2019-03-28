@@ -37,6 +37,7 @@
     },
     "extras_require": {
         "dev": [
+            "pgtest==1.1.0",
             "pre-commit==1.14.4",
             "astroid==2.1.0; python_version>='3.0'",
             "pylint==1.9.4; python_version<'3.0'",
@@ -53,7 +54,11 @@
     },
     "install_requires": [
         "aiida-core[atomic_tools]>=1.0.0b1",
-        "click>=6.0.0"
+        "click>=6.0.0",
+        "plumpy==0.13.0",
+        "kiwipy==0.5.0",
+        "topika==0.2.0",
+        "pika==1.0.0"
     ],
     "license": "MIT License",
     "name": "aiida_codtools",

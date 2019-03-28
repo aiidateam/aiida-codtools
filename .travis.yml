@@ -20,13 +20,17 @@ before_install:
     - pip install -U pip==18.1 wheel setuptools reentry
 
 install:
-    - pip install .[dev,docs]
+    - pip install .[dev,docs] --no-cache-dir
+    - pip install -U git+git://github.com/aiidateam/aiida_core.git@develop
+    - reentry scan
 
 env:
     - TEST_TYPE="pre-commit"
+    - TEST_TYPE="tests"
 
 script:
-    - if [ "$TEST_TYPE" == "pre-commit" ] ; then pre-commit install; pre-commit run --all-files || ( git status --short; git diff ; exit 1 ); fi
+    - if [ "$TEST_TYPE" == "tests" ];then pytest tests ;fi
+    - if [ "$TEST_TYPE" == "pre-commit" ];then pre-commit install; pre-commit run --all-files || ( git status --short; git diff ; exit 1 ); fi
 
 git:
   depth: 3
