@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+"""Tests for the CLI utilities."""
 from __future__ import absolute_import
 from aiida_codtools.common.cli import CliParameters
 
 
-class TestCliParameters(object):
+class TestCliParameters(object):  # pylint: disable=useless-object-inheritance
     """Tests for the `CliParameters` object."""
 
     test_parameters_string = "--print-datablocks --authors 'John Doe; Jane Doe;' --year 2001"

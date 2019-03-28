@@ -1,3 +1,4 @@
+# pylint: disable=redefined-outer-name
 """Initialise a text database and profile for pytest."""
 from __future__ import absolute_import
 
@@ -46,8 +47,17 @@ def fixture_database(fixture_environment):
 
 @pytest.fixture
 def generate_calc_job_node():
+    """Fixture to generate a mock `CalcJobNode` for testing parsers."""
 
-    def _generate_calc_job_node(entry_point_name, computer, test_name):
+    def _generate_calc_job_node(entry_point_name, computer, test_name, attributes=None):
+        """Fixture to generate a mock `CalcJobNode` for testing parsers.
+
+        :param entry_point_name: entry point name of the calculation class
+        :param computer: a `Computer` instance
+        :param test_name: relative path of directory with test output files in the `fixtures/{entry_point_name}` folder
+        :param attributes: any optional attributes to set on the node
+        :return: `CalcJobNode` instance with an attached `FolderData` as the `retrieved` node
+        """
         import os
         from aiida.common.links import LinkType
         from aiida.orm import CalcJobNode, FolderData
@@ -61,6 +71,10 @@ def generate_calc_job_node():
         node.set_attribute('error_filename', 'aiida.err')
         node.set_option('resources', {'num_machines': 1, 'num_mpiprocs_per_machine': 1})
         node.set_option('max_wallclock_seconds', 1800)
+
+        if attributes:
+            node.set_attributes(attributes)
+
         node.store()
 
         basepath = os.path.dirname(os.path.abspath(__file__))
@@ -78,8 +92,14 @@ def generate_calc_job_node():
 
 @pytest.fixture
 def generate_parser():
+    """Fixture to load a parser class for testing parsers."""
 
     def _generate_parser(entry_point_name):
+        """Fixture to load a parser class for testing parsers.
+
+        :param entry_point_name: entry point name of the parser class
+        :return: the `Parser` sub class
+        """
         from aiida.plugins import ParserFactory
         return ParserFactory(entry_point_name)
 

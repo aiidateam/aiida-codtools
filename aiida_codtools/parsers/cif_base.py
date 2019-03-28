@@ -4,6 +4,7 @@ from __future__ import absolute_import
 import traceback
 
 from aiida.common import exceptions
+from aiida.orm import Dict
 from aiida.parsers.parser import Parser
 from aiida.plugins import CalculationFactory, DataFactory
 
@@ -91,6 +92,9 @@ class CifBaseParser(Parser):
                 messages['errors'].append(line.split(marker_error)[-1].strip())
             if marker_warning in line:
                 messages['warnings'].append(line.split(marker_warning)[-1].strip())
+
+        if self.node.get_option('attach_messages'):
+            self.out('messages', Dict(dict=messages))
 
         for error in messages['errors']:
             if 'unknown option' in error:

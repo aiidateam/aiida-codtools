@@ -1,56 +1,42 @@
 # -*- coding: utf-8 -*-
+"""Parser implementation for the `CifCodNumbersCalculation` plugin."""
 from __future__ import absolute_import
 import re
+import traceback
 
-from aiida.orm import Dict
-
-from aiida_codtools.parsers import BaseCodToolsParser
 from aiida_codtools.calculations.cif_cod_numbers import CifCodNumbersCalculation
+from aiida_codtools.parsers.cif_base import CifBaseParser
 
 
-class CifCodNumbersParser(BaseCodToolsParser):
-    """
-    Specific parser plugin for cif_cod_numbers from cod-tools package
-    """
+class CifCodNumbersParser(CifBaseParser):
+    """Parser implementation for the `CifCodNumbersCalculation` plugin."""
 
-    def __init__(self, calc):
-        self._supported_calculation_class = CifCodNumbersCalculation
-        super(CifCodNumbersParser, self).__init__(calc)
+    # pylint: disable=inconsistent-return-statements
 
-    def _get_output_nodes(self, output_path, error_path):
+    _supported_calculation_class = CifCodNumbersCalculation
+
+    def parse_stdout(self, filelike):
+        """Parse the content written by the script to standard out.
+
+        :param filelike: filelike object of stdout
+        :returns: an exit code in case of an error, None otherwise
         """
-        Extracts output nodes from the standard output and standard error files
-        """
-        duplicates = []
-        if output_path is not None:
-            with open(output_path) as f:
-                content = f.readlines()
-            lines = [x.strip('\n') for x in content]
-            for line in lines:
-                fields = re.split(r'\s+', line)
-                count = None
-                try:
-                    count = int(fields[2])
-                except ValueError:
-                    pass
-                if count:
-                    duplicates.append({
-                        'formula': fields[0],
-                        'codid': fields[1],
-                        'count': count,
-                    })
+        from aiida.orm import Dict
 
-        errors = []
-        if error_path is not None:
-            with open(error_path) as f:
-                content = f.readlines()
-            lines = [x.strip('\n') for x in content]
-            self._check_failed(lines)
-            errors.extend(lines)
+        numbers = {}
+        content = filelike.read().strip()
 
-        parameters = {'duplicates': duplicates, 'errors': errors}
+        if not content:
+            return self.exit_codes.ERROR_EMPTY_OUTPUT_FILE
 
-        output_nodes = []
-        output_nodes.append(('output', Dict(dict=parameters)))
+        try:
+            for line in content.split('\n'):
+                formula, identifier, count, _ = re.split(r'\s+', line.strip())
+                numbers[identifier] = {'count': int(count), 'formula': formula}
+        except Exception:  # pylint: disable=broad-except
+            self.logger.exception('Failed to parse the numbers from the stdout file\n%s', traceback.format_exc())
+            return self.exit_codes.ERROR_PARSING_OUTPUT_DATA
+        else:
+            self.out('numbers', Dict(dict=numbers))
 
-        return True, output_nodes
+        return

@@ -1,49 +1,47 @@
 # -*- coding: utf-8 -*-
+"""Parser implementation for the `CifSplitPrimitiveCalculation` plugin."""
 from __future__ import absolute_import
 import os
+import traceback
 
-from aiida.orm import CifData, Dict
-
-from aiida_codtools.parsers import BaseCodToolsParser
 from aiida_codtools.calculations.cif_split_primitive import CifSplitPrimitiveCalculation
+from aiida_codtools.parsers.cif_base import CifBaseParser
 
 
-class CifSplitPrimitiveParser(BaseCodToolsParser):
-    """
-    Specific parser plugin for cif_split_primitive from cod-tools package
-    """
+class CifSplitPrimitiveParser(CifBaseParser):
+    """Parser implementation for the `CifSplitPrimitiveCalculation` plugin."""
 
-    def __init__(self, calc):
-        self._supported_calculation_class = CifSplitPrimitiveCalculation
-        super(CifSplitPrimitiveParser, self).__init__(calc)
+    # pylint: disable=inconsistent-return-statements
 
-    def _get_output_nodes(self, output_path, error_path):
+    _supported_calculation_class = CifSplitPrimitiveCalculation
+
+    def parse_stdout(self, filelike):
+        """Parse the content written by the script to standard out.
+
+        The standard output will contain a list of relative filepaths where the generated CIF files have been written.
+
+        :param filelike: filelike object of stdout
+        :returns: an exit code in case of an error, None otherwise
         """
-        Extracts output nodes from the standard output and standard error files
-        """
-        out_folder = self._calc.get_retrieved_node()
+        from aiida.orm import CifData
 
-        output_nodes = []
-        success = False
+        content = filelike.read().strip()
 
-        if error_path is not None:
-            with open(error_path) as f:
-                content = f.readlines()
-            content = [x.strip('\n') for x in content]
-            self._check_failed(content)
-            if content:
-                success = True
-            for filename in content:
-                path = os.path.join(out_folder.get_abs_path('.'), filename)
-                output_nodes.append(('cif', CifData(file=path)))
+        if not content:
+            return self.exit_codes.ERROR_EMPTY_OUTPUT_FILE
 
-        if output_path is not None:
-            with open(output_path) as f:
-                content = f.readlines()
-            content = [x.strip('\n') for x in content]
+        try:
+            cifs = {}
+            for line in content.split('\n'):
+                filename = line.strip()
+                output_name = os.path.splitext(os.path.basename(filename))[0]
+                with self.retrieved.open(filename) as handle:
+                    cifs[output_name] = CifData(file=handle)
 
-            messages = {'output_messages': content}
+        except Exception:  # pylint: disable=broad-except
+            self.logger.exception('Failed to open a generated from the stdout file\n%s', traceback.format_exc())
+            return self.exit_codes.ERROR_PARSING_OUTPUT_DATA
 
-            output_nodes.append(('messages', Dict(dict=messages)))
+        self.out('cifs', cifs)
 
-        return success, output_nodes
+        return

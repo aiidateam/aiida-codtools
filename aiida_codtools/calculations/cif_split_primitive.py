@@ -3,6 +3,7 @@
 from __future__ import absolute_import
 
 import os
+from aiida.orm import CifData
 from aiida_codtools.calculations.cif_base import CifBaseCalculation
 
 
@@ -11,6 +12,12 @@ class CifSplitPrimitiveCalculation(CifBaseCalculation):
 
     _default_parser = 'codtools.cif_split_primitive'
     _directory_split = 'split'
+
+    @classmethod
+    def define(cls, spec):
+        # yapf: disable
+        super(CifSplitPrimitiveCalculation, cls).define(spec)
+        spec.output_namespace('cifs', valid_type=CifData, help='The CIFs produced by the script.', dynamic=True)
 
     def prepare_for_submission(self, folder):
         calcinfo = super(CifSplitPrimitiveCalculation, self).prepare_for_submission(folder)

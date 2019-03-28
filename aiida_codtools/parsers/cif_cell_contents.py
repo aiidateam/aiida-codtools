@@ -1,48 +1,42 @@
 # -*- coding: utf-8 -*-
+"""Parser implementation for the `CifCellContentsCalculation` plugin."""
 from __future__ import absolute_import
 import re
+import traceback
 
-from aiida.orm import Dict
-
-from aiida_codtools.parsers import BaseCodToolsParser
 from aiida_codtools.calculations.cif_cell_contents import CifCellContentsCalculation
+from aiida_codtools.parsers.cif_base import CifBaseParser
 
 
-class CifCellContentsParser(BaseCodToolsParser):
-    """
-    Specific parser plugin for cif_cell_contents from cod-tools package
-    """
+class CifCellContentsParser(CifBaseParser):
+    """Parser implementation for the `CifCellContentsCalculation` plugin."""
 
-    def __init__(self, calc):
-        self._supported_calculation_class = CifCellContentsCalculation
-        super(CifCellContentsParser, self).__init__(calc)
+    # pylint: disable=inconsistent-return-statements
 
-    def _get_output_nodes(self, output_path, error_path):
+    _supported_calculation_class = CifCellContentsCalculation
+
+    def parse_stdout(self, filelike):
+        """Parse the formulae from the content written by the script to standard out.
+
+        :param filelike: filelike object of stdout
+        :returns: an exit code in case of an error, None otherwise
         """
-        Extracts output nodes from the standard output and standard error files
-        """
+        from aiida.orm import Dict
+
         formulae = {}
-        if output_path is not None:
-            with open(output_path) as f:
-                content = f.readlines()
-            content = [x.strip('\n') for x in content]
-            for line in content:
-                datablock, formula = re.split(r'\s+', line, 1)
+        content = filelike.read().strip()
+
+        if not content:
+            return self.exit_codes.ERROR_EMPTY_OUTPUT_FILE
+
+        try:
+            for line in content.split('\n'):
+                datablock, formula = re.split(r'\s+', line.strip(), 1)
                 formulae[datablock] = formula
+        except Exception:  # pylint: disable=broad-except
+            self.logger.exception('Failed to parse formulae from the stdout file\n%s', traceback.format_exc())
+            return self.exit_codes.ERROR_PARSING_OUTPUT_DATA
+        else:
+            self.out('formulae', Dict(dict=formulae))
 
-        messages = []
-        if error_path is not None:
-            with open(error_path) as f:
-                content = f.readlines()
-            messages = [x.strip('\n') for x in content]
-            self._check_failed(messages)
-
-        output_nodes = []
-        output_nodes.append(('formulae', Dict(dict={'formulae': formulae})))
-        output_nodes.append(('messages', Dict(dict={'output_messages': messages})))
-
-        success = True
-        if not list(formulae.keys()):
-            success = False
-
-        return success, output_nodes
+        return

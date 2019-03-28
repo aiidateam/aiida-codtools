@@ -1,47 +1,20 @@
 # -*- coding: utf-8 -*-
+"""Parser implementation for the `CifCodCheckCalculation` plugin."""
 from __future__ import absolute_import
-import re
 
-from aiida.orm import Dict
-
-from aiida_codtools.parsers import BaseCodToolsParser
 from aiida_codtools.calculations.cif_cod_check import CifCodCheckCalculation
+from aiida_codtools.parsers.cif_base import CifBaseParser
 
 
-class CifCodCheckParser(BaseCodToolsParser):
-    """
-    Specific parser plugin for cif_cod_check from cod-tools package
-    """
+class CifCodCheckParser(CifBaseParser):
+    """Parser implementation for the `CifCodCheckCalculation` plugin."""
 
-    def __init__(self, calc):
-        self._supported_calculation_class = CifCodCheckCalculation
-        super(CifCodCheckParser, self).__init__(calc)
+    _supported_calculation_class = CifCodCheckCalculation
 
-    def _get_output_nodes(self, output_path, error_path):
+    def parse_stdout(self, filelike):
+        """The stdout for `cif_cod_check` is supposed to be empty, the real content will be written to stderr.
+
+        :param filelike: filelike object of stdout
+        :returns: an exit code in case of an error, None otherwise
         """
-        Extracts output nodes from the standard output and standard error files
-        """
-        messages = []
-        if output_path is not None:
-            with open(output_path) as f:
-                content = f.readlines()
-            lines = [x.strip('\n') for x in content]
-            if re.search(' OK$', lines[0]) is not None:
-                lines.pop(0)
-            messages.extend(lines)
-
-        if error_path is not None:
-            with open(error_path) as f:
-                content = f.readlines()
-            lines = [x.strip('\n') for x in content]
-            messages.extend(lines)
-            self._check_failed(messages)
-
-        parameters = {
-            'output_messages': messages,
-        }
-
-        output_nodes = []
-        output_nodes.append(('messages', Dict(dict=parameters)))
-
-        return True, output_nodes
+        return

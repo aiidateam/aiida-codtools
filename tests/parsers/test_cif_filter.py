@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=unused-argument
+"""Tests for the `CifBaseParser`."""
 
 
 def test_cif_filter(fixture_database, fixture_computer_localhost, generate_calc_job_node, generate_parser):

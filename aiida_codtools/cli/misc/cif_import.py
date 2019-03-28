@@ -168,7 +168,7 @@ def launch_cif_import(group, database, max_entries, number_species, skip_partial
 
         if source_id in existing_source_ids:
             if verbose:
-                echo_utc('Cif<{}> skipping: already present in group {}'.format(source_id, group.name))
+                echo_utc('Cif<{}> skipping: already present in group {}'.format(source_id, group.label))
             continue
 
         try:
@@ -188,7 +188,7 @@ def launch_cif_import(group, database, max_entries, number_species, skip_partial
                 else:
                     template = 'Cif<{}> would have added: CifData<{}> to group {}'
 
-                echo_utc(template.format(source_id, cif.uuid, group.name))
+                echo_utc(template.format(source_id, cif.uuid, group.label))
                 counter += 1
 
         if not dry_run and counter % batch_count == 0:

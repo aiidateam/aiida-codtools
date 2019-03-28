@@ -27,8 +27,17 @@ class CifBaseCalculation(CalcJob):
             help='Filename to which the content of stdout of the code that is to be run will be written.')
         spec.input('metadata.options.parser_name', valid_type=six.string_types, default=cls._default_parser,
             help='Define the parser to be used by setting its entry point name.')
-        spec.input('cif', valid_type=CifData, required=True, help='The CIF to be processed.')
-        spec.input('parameters', valid_type=Dict, required=False, help='Command line parameters.')
+        spec.input('metadata.options.attach_messages', valid_type=bool, default=False,
+            help='When True, warnings and errors written to stderr will be attached as the `messages` output node')
+
+        spec.input('cif', valid_type=CifData, required=True,
+            help='The CIF to be processed.')
+        spec.input('parameters', valid_type=Dict, required=False,
+            help='Command line parameters.')
+
+        spec.output('messages', valid_type=Dict, required=False,
+            help='Warning and error messages returned by script.')
+
         spec.exit_code(100, 'ERROR_NO_RETRIEVED_FOLDER',
             message='The retrieved folder data node could not be accessed.')
         spec.exit_code(110, 'ERROR_NO_OUTPUT_FILES',

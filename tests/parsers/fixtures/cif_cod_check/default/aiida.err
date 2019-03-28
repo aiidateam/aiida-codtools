@@ -1,0 +1,6 @@
+/usr/bin/cif_cod_check: test_cifs/test_06.cif data_1000004: WARNING, _journal_name_full is undefined.
+/usr/bin/cif_cod_check: test_cifs/test_06.cif data_1000004: WARNING, _publ_section_title is undefined.
+/usr/bin/cif_cod_check: test_cifs/test_06.cif data_1000004: WARNING, neither _journal_year nor _journal_volume is defined.
+/usr/bin/cif_cod_check: test_cifs/test_06.cif data_1000004: WARNING, neither _journal_page_first nor _journal_article_reference is defined.
+/usr/bin/cif_cod_check: test_cifs/test_06.cif data_1000004: WARNING, _publ_author_name is undefined.
+/usr/bin/cif_cod_check: test_cifs/test_06.cif: NOTE, 5 WARNING(s) encountered.
