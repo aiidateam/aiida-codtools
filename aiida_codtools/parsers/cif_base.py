@@ -62,13 +62,15 @@ class CifBaseParser(Parser):
         :param filelike: filelike object of stdout
         :returns: an exit code in case of an error, None otherwise
         """
+        from CifFile import StarError
+
         if not filelike.read().strip():
             return self.exit_codes.ERROR_EMPTY_OUTPUT_FILE
 
         try:
             filelike.seek(0)
             cif = CifData(file=filelike)
-        except Exception:  # pylint: disable=broad-except
+        except StarError:
             self.logger.exception('Failed to parse a `CifData` from the stdout file\n%s', traceback.format_exc())
             return self.exit_codes.ERROR_PARSING_CIF_DATA
         else:
