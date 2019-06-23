@@ -73,7 +73,7 @@ def generate_calc_job_node():
         node.set_option('max_wallclock_seconds', 1800)
 
         if attributes:
-            node.set_attributes(attributes)
+            node.set_attribute_many(attributes)
 
         node.store()
 

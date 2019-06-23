@@ -78,6 +78,7 @@ class CifCleanWorkChain(WorkChain):
     def run_filter_calculation(self):
         """Run the CifFilterCalculation on the CifData input node."""
         inputs = self.exposed_inputs(CifFilterCalculation, namespace='cif_filter')
+        inputs.metadata.call_link_label = 'cif_filter'
         inputs.cif = self.inputs.cif
 
         calculation = self.submit(CifFilterCalculation, **inputs)
@@ -97,6 +98,7 @@ class CifCleanWorkChain(WorkChain):
     def run_select_calculation(self):
         """Run the CifSelectCalculation on the CifData output node of the CifFilterCalculation."""
         inputs = self.exposed_inputs(CifSelectCalculation, namespace='cif_select')
+        inputs.metadata.call_link_label = 'cif_select'
         inputs.cif = self.ctx.cif
 
         calculation = self.submit(CifSelectCalculation, **inputs)
@@ -141,6 +143,9 @@ class CifCleanWorkChain(WorkChain):
             'parse_engine': self.inputs.parse_engine,
             'site_tolerance': self.inputs.site_tolerance,
             'symprec': self.inputs.symprec,
+            'metadata': {
+                'call_link_label': 'primitive_structure_from_cif'
+            }
         }
 
         try:
