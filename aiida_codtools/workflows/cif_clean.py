@@ -2,12 +2,11 @@
 """WorkChain to clean a `CifData` using `cif_filter` and `cif_select` from cod-tools and parse a `StructureData`."""
 # pylint: disable=inconsistent-return-statements,no-member
 from __future__ import absolute_import
+
 from aiida import orm
 from aiida.common import exceptions
 from aiida.engine import WorkChain, ToContext, if_
 from aiida.plugins import CalculationFactory
-
-from aiida_codtools.common.resources import get_default_options
 
 CifFilterCalculation = CalculationFactory('codtools.cif_filter')  # pylint: disable=invalid-name
 CifSelectCalculation = CalculationFactory('codtools.cif_select')  # pylint: disable=invalid-name
@@ -26,18 +25,10 @@ class CifCleanWorkChain(WorkChain):
     def define(cls, spec):
         # yapf: disable
         super(CifCleanWorkChain, cls).define(spec)
+        spec.expose_inputs(CifFilterCalculation, namespace='cif_filter', exclude=('cif',))
+        spec.expose_inputs(CifSelectCalculation, namespace='cif_select', exclude=('cif',))
         spec.input('cif', valid_type=orm.CifData,
             help='The CifData node that is to be cleaned.')
-        spec.input('cif_filter', valid_type=orm.Code,
-            help='The AiiDA code object that references the cod-tools cif_filter script.')
-        spec.input('cif_select', valid_type=orm.Code,
-            help='The AiiDA code object that references the cod-tools cif_select script.')
-        spec.input('cif_filter_parameters', valid_type=orm.Dict, required=True,
-            help='Parameters to be passed to the `CifFilterCalculation`.')
-        spec.input('cif_select_parameters', valid_type=orm.Dict, required=True,
-            help='Parameters to be passed to the `CifSelectCalculation`.')
-        spec.input('options', valid_type=orm.Dict, default=orm.Dict(dict=get_default_options()),
-            help='Options for the calculations.')
         spec.input('parse_engine', valid_type=orm.Str, default=orm.Str('pymatgen'),
             help='The atomic structure engine to parse the cif and create the structure.')
         spec.input('symprec', valid_type=orm.Float, default=orm.Float(5E-3),
@@ -86,14 +77,8 @@ class CifCleanWorkChain(WorkChain):
 
     def run_filter_calculation(self):
         """Run the CifFilterCalculation on the CifData input node."""
-        inputs = {
-            'cif': self.inputs.cif,
-            'code': self.inputs.cif_filter,
-            'parameters': self.inputs.cif_filter_parameters,
-            'metadata': {
-                'options': self.inputs.options.get_dict(),
-            }
-        }
+        inputs = self.exposed_inputs(CifFilterCalculation, namespace='cif_filter')
+        inputs.cif = self.inputs.cif
 
         calculation = self.submit(CifFilterCalculation, **inputs)
         self.report('submitted {}<{}>'.format(CifFilterCalculation.__name__, calculation.uuid))
@@ -111,14 +96,8 @@ class CifCleanWorkChain(WorkChain):
 
     def run_select_calculation(self):
         """Run the CifSelectCalculation on the CifData output node of the CifFilterCalculation."""
-        inputs = {
-            'cif': self.ctx.cif,
-            'code': self.inputs.cif_select,
-            'parameters': self.inputs.cif_select_parameters,
-            'metadata': {
-                'options': self.inputs.options.get_dict(),
-            }
-        }
+        inputs = self.exposed_inputs(CifSelectCalculation, namespace='cif_select')
+        inputs.cif = self.ctx.cif
 
         calculation = self.submit(CifSelectCalculation, **inputs)
         self.report('submitted {}<{}>'.format(CifSelectCalculation.__name__, calculation.uuid))

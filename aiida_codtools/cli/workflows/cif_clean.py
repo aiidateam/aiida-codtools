@@ -130,7 +130,6 @@ def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, gro
         'use-c-parser': True,
     })
 
-    node_options = get_input_node(orm.Dict, get_default_options())
     node_parse_engine = get_input_node(orm.Str, parse_engine)
     node_site_tolerance = get_input_node(orm.Float, 5E-4)
     node_symprec = get_input_node(orm.Float, 5E-3)
@@ -139,11 +138,20 @@ def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, gro
 
         inputs = {
             'cif': cif,
-            'cif_filter': cif_filter,
-            'cif_select': cif_select,
-            'cif_filter_parameters': node_cif_filter_parameters,
-            'cif_select_parameters': node_cif_select_parameters,
-            'options': node_options,
+            'cif_filter': {
+                'code': cif_filter,
+                'parameters': node_cif_filter_parameters,
+                'metadata': {
+                    'options': get_default_options()
+                }
+            },
+            'cif_select': {
+                'code': cif_select,
+                'parameters': node_cif_select_parameters,
+                'metadata': {
+                    'options': get_default_options()
+                }
+            },
             'parse_engine': node_parse_engine,
             'site_tolerance': node_site_tolerance,
             'symprec': node_symprec,
