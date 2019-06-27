@@ -29,6 +29,9 @@ class CifCellContentsParser(CifBaseParser):
         if not content:
             return self.exit_codes.ERROR_EMPTY_OUTPUT_FILE
 
+        # The filelike should be in binary mode, so we should decode the bytes, assuming the content is in `utf-8`
+        content = content.decode('utf-8')
+
         try:
             for line in content.split('\n'):
                 datablock, formula = re.split(r'\s+', line.strip(), 1)

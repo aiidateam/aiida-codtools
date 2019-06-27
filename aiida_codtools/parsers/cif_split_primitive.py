@@ -30,12 +30,15 @@ class CifSplitPrimitiveParser(CifBaseParser):
         if not content:
             return self.exit_codes.ERROR_EMPTY_OUTPUT_FILE
 
+        # The filelike should be in binary mode, so we should decode the bytes, assuming the content is in `utf-8`
+        content = content.decode('utf-8')
+
         try:
             cifs = {}
             for line in content.split('\n'):
                 filename = line.strip()
                 output_name = os.path.splitext(os.path.basename(filename))[0]
-                with self.retrieved.open(filename) as handle:
+                with self.retrieved.open(filename, 'rb') as handle:
                     cifs[output_name] = CifData(file=handle)
 
         except Exception:  # pylint: disable=broad-except

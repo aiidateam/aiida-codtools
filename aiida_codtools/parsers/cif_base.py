@@ -46,7 +46,7 @@ class CifBaseParser(Parser):
             return exit_code
 
         try:
-            with output_folder.open(filename_stdout, 'r') as handle:
+            with output_folder.open(filename_stdout, 'rb') as handle:
                 handle.seek(0)
                 exit_code = self.parse_stdout(handle)
         except (OSError, IOError):
