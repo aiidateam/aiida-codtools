@@ -53,8 +53,11 @@
         ]
     },
     "install_requires": [
-        "aiida-core[atomic_tools]>=1.0.0b1",
-        "click>=7.0.0"
+        "aiida-core>=1.0.0b4",
+        "PyCifRW==4.2.1; python_version < '3'",
+        "PyCifRW==4.4; python_version >= '3'",
+        "seekpath==1.8.4",
+        "matplotlib<3.0.0; python_version<'3'"
     ],
     "license": "MIT License",
     "name": "aiida_codtools",
