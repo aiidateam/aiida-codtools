@@ -23,7 +23,8 @@ def setup_package():
         reentry_register=True,
         long_description=description,
         long_description_content_type='text/markdown',
-        **setup_json)
+        **setup_json
+    )
 
 
 if __name__ == '__main__':

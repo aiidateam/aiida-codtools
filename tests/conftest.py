@@ -34,7 +34,8 @@ def fixture_computer_localhost(fixture_work_directory):
         hostname='localhost',
         transport_type='local',
         scheduler_type='direct',
-        workdir=fixture_work_directory).store()
+        workdir=fixture_work_directory
+    ).store()
     yield computer
 
 
