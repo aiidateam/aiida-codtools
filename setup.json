@@ -27,6 +27,7 @@
             "codtools.cif_split_primitive = aiida_codtools.parsers.cif_split_primitive:CifSplitPrimitiveParser"
         ],
         "aiida.workflows": [
+            "codtools.primitive_structure_from_cif = aiida_codtools.workflows.functions.primitive_structure_from_cif:primitive_structure_from_cif",
             "codtools.cif_clean = aiida_codtools.workflows.cif_clean:CifCleanWorkChain"
         ],
         "console_scripts": [
