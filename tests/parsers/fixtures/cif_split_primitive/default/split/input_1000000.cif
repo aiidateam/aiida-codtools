@@ -124,7 +124,7 @@ according to '/home/saulius/struct/CIF-dictionaries/cif_core.dic'
 dictionary named 'cif_core.dic' version 2.4.1 from 2010-06-29.
 
 Automatic conversion script
-Id: cif_fix_enum 1527 2010-12-29 10:47:43Z saulius 
+Id: cif_fix_enum 1527 2010-12-29 10:47:43Z saulius
 
 The following automatic conversions were performed:
 
@@ -135,7 +135,7 @@ created. The value of the new tag was set to 'w =
 1/[\s^2^(Fo^2^)+(0.0573P)^2^+3.0698P] where P=(Fo^2^+2Fc^2^)/3'.
 
 Automatic conversion script
-Id: cif_fix_values 3143 2015-03-26 13:38:13Z robertas 
+Id: cif_fix_values 3143 2015-03-26 13:38:13Z robertas
 ;
 _cod_original_sg_symbol_H-M      P2(1)/n
 _cod_database_code               1000000

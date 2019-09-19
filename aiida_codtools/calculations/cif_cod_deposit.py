@@ -35,36 +35,36 @@ class CifCodDepositCalculation(CifBaseCalculation):
         try:
             cif = inputdict.pop(self.get_linkname('cif'))
         except KeyError:
-            raise exceptions.InputValidationError("no CIF file is specified for deposition")
+            raise exceptions.InputValidationError('no CIF file is specified for deposition')
         if not isinstance(cif, CifData):
-            raise exceptions.InputValidationError("cif is not of type CifData")
+            raise exceptions.InputValidationError('cif is not of type CifData')
 
         parameters = inputdict.pop(self.get_linkname('parameters'), None)
         if parameters is None:
             parameters = Dict(dict={})
         if not isinstance(parameters, Dict):
-            raise exceptions.InputValidationError("parameters is not of type Dict")
+            raise exceptions.InputValidationError('parameters is not of type Dict')
 
         code = inputdict.pop(self.get_linkname('code'), None)
         if code is None:
-            raise exceptions.InputValidationError("No code found in input")
+            raise exceptions.InputValidationError('No code found in input')
 
         parameters_dict = parameters.get_dict()
 
-        deposit_file_rel = "deposit.cif"
+        deposit_file_rel = 'deposit.cif'
         deposit_file_abs = tempfolder.get_abs_path(deposit_file_rel)
         shutil.copy(cif.get_file_abs_path(), deposit_file_abs)
 
         input_filename = tempfolder.get_abs_path(self._DEFAULT_INPUT_FILE)
         with open(input_filename, 'w') as f:
-            f.write("{}\n".format(deposit_file_rel))
+            f.write('{}\n'.format(deposit_file_rel))
             f.flush()
 
         config_file_abs = tempfolder.get_abs_path(self._CONFIG_FILE)
         with open(config_file_abs, 'w') as f:
             for k in self._config_keys:
                 if k in list(parameters_dict.keys()):
-                    f.write("{}={}\n".format(k, parameters_dict.pop(k)))
+                    f.write('{}={}\n'.format(k, parameters_dict.pop(k)))
             f.flush()
 
         commandline_params = self._default_commandline_params

@@ -28,11 +28,11 @@ Outputs
         {
           "duplicates": [
             {
-              "codid": "4000099", 
-              "count": 1, 
+              "codid": "4000099",
+              "count": 1,
               "formula": "C50_H44_N2_Ni_O4"
             }
-          ], 
+          ],
           "errors": []
         }
 

@@ -58,10 +58,10 @@ master_doc = 'index'
 # General information about the project.
 project = u'aiida-codtools'
 copyright_first_year = 2014
-copyright_owners = "ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE (Theory and Simulation of Materials (THEOS) and National Centre for Computational Design and Discovery of Novel Materials (NCCR MARVEL)), Switzerland"
+copyright_owners = 'ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE (Theory and Simulation of Materials (THEOS) and National Centre for Computational Design and Discovery of Novel Materials (NCCR MARVEL)), Switzerland'
 
 current_year = time.localtime().tm_year
-copyright_year_string = current_year if current_year == copyright_first_year else "{}-{}".format(copyright_first_year, current_year)
+copyright_year_string = current_year if current_year == copyright_first_year else '{}-{}'.format(copyright_first_year, current_year)
 copyright = u'{}, {}. All rights reserved'.format(copyright_year_string, copyright_owners)
 
 # The version info for the project you're documenting, acts as replacement for
@@ -316,7 +316,7 @@ else:
     # Back-end settings for readthedocs online documentation.
     from aiida.manage import configuration
     configuration.IN_RT_DOC_MODE = True
-    configuration.BACKEND = "django"
+    configuration.BACKEND = 'django'
 
 # Warnings to ignore when using the -n (nitpicky) option
 # We should ignore any python built-in exception, for instance

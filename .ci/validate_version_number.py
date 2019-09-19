@@ -37,10 +37,10 @@ def validate_version():
     setup_content = get_setup_json()
 
     if version != setup_content['version']:
-        click.echo("Version number mismatch detected:")
-        click.echo("Version number in '{}': {}".format(FILENAME_SETUP_JSON, setup_content['version']))
-        click.echo("Version number in '{}/__init__.py': {}".format('aiida_codtools', version))
-        click.echo("Updating version in '{}' to: {}".format(FILENAME_SETUP_JSON, version))
+        click.echo('Version number mismatch detected:')
+        click.echo('Version number in `{}`: {}'.format(FILENAME_SETUP_JSON, setup_content['version']))
+        click.echo('Version number in `{}/__init__.py`: {}'.format('aiida_codtools', version))
+        click.echo('Updating version in `{}` to: {}'.format(FILENAME_SETUP_JSON, version))
 
         setup_content['version'] = version
         with open(FILEPATH_SETUP_JSON, 'w') as handle:
