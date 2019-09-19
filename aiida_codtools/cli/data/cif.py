@@ -1,14 +1,22 @@
 # -*- coding: utf-8 -*-
+# yapf:disable
 """Command line interface script to import CIF files from external databases into `CifData` nodes."""
-# yapf: disable
 from __future__ import absolute_import
+
 import click
 
 from aiida.cmdline.params import options
 from aiida.cmdline.utils import decorators, echo
 
+from . import cmd_data
 
-@click.command()
+
+@cmd_data.group('cif')
+def cmd_cif():
+    """Commands to import, create and inspect `CifData` nodes."""
+
+
+@cmd_cif.command('import')
 @options.GROUP(help='Group in which to store the raw imported CifData nodes.', required=False)
 @click.option(
     '-d', '--database', type=click.Choice(['cod', 'icsd', 'mpds']), default='cod', show_default=True,
@@ -70,7 +78,7 @@ def launch_cif_import(group, database, max_entries, number_species, skip_partial
 
     from aiida import orm
     from aiida.plugins import factories
-    from aiida_codtools.common.cli import echo_utc
+    from aiida_codtools.cli.utils.display import echo_utc
 
     if not count_entries and group is None:
         raise click.BadParameter('you have to specify a group unless the option --count-entries is specified')

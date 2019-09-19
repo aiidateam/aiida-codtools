@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Tests for the CLI utilities."""
 from __future__ import absolute_import
-from aiida_codtools.common.cli import CliParameters
+from aiida_codtools.cli.utils.parameters import CliParameters
 
 
 class TestCliParameters(object):  # pylint: disable=useless-object-inheritance

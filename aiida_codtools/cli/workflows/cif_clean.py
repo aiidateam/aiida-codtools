@@ -7,8 +7,10 @@ import click
 from aiida.cmdline.params import types
 from aiida.cmdline.utils import decorators
 
+from . import cmd_launch
 
-@click.command()
+
+@cmd_launch.command('cif-clean')
 @click.option(
     '-F', '--cif-filter', required=True, type=types.CodeParamType(entry_point='codtools.cif_filter'),
     help='Code that references the codtools cif_filter script.')
@@ -59,7 +61,7 @@ def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, gro
     from aiida import orm
     from aiida.engine import launch
     from aiida.plugins import DataFactory, WorkflowFactory
-    from aiida_codtools.common.cli import echo_utc
+    from aiida_codtools.cli.utils.display import echo_utc
     from aiida_codtools.common.resources import get_default_options
     from aiida_codtools.common.utils import get_input_node
 

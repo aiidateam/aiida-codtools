@@ -48,7 +48,7 @@ class CifCodDepositCalculation(CifBaseCalculation):
         :param folder: an aiida.common.folders.Folder to temporarily write files on disk
         :returns: CalcInfo instance
         """
-        from aiida_codtools.common.cli import CliParameters
+        from aiida_codtools.cli.utils.parameters import CliParameters
 
         try:
             parameters = self.inputs.parameters.get_dict()

@@ -31,9 +31,7 @@
             "codtools.cif_clean = aiida_codtools.workflows.cif_clean:CifCleanWorkChain"
         ],
         "console_scripts": [
-            "launch_calculation_cod_tools = aiida_codtools.cli.calculations.cod_tools:cli",
-            "launch_misc_cif_import = aiida_codtools.cli.misc.cif_import:launch_cif_import",
-            "launch_workflow_cif_clean = aiida_codtools.cli.workflows.cif_clean:launch_cif_clean"
+            "aiida-codtools = aiida_codtools.cli:cmd_root"
         ]
     },
     "extras_require": {
@@ -55,6 +53,8 @@
     },
     "install_requires": [
         "aiida-core>=1.0.0b6",
+        "click>=7.0",
+        "click-completion>=0.5.1",
         "matplotlib<3.0.0; python_version<'3'",
         "PyCifRW==4.2.1; python_version<'3'",
         "PyCifRW==4.4; python_version>='3'",
