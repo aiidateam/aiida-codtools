@@ -1,95 +1,48 @@
 # -*- coding: utf-8 -*-
+"""Generic `Parser` implementation that can easily be extended to work with any of the `cod-tools` scripts."""
 from __future__ import absolute_import
-import re
 
-from aiida.common.extendeddicts import Enumerate
-from aiida.orm import Dict
+import re
 
 from aiida_codtools.parsers.cif_base import CifBaseParser
 from aiida_codtools.calculations.cif_cod_deposit import CifCodDepositCalculation
 
 
-class CodDepositionState(Enumerate):
-    pass
-
-
-cod_deposition_states = CodDepositionState((
-    'SUCCESS',  # Structures are deposited/updated successfully
-    'DUPLICATE',  # Structures are found to be already in the database
-    'UNCHANGED',  # Structures are not updated (nothing to update)
-    'INPUTERROR',  # Other error caused by user's input
-    'SERVERERROR',  # Internal server error
-    'UNKNOWN'  # Unknown state
-))
-
-
 class CifCodDepositParser(CifBaseParser):
-    """
-    Specific parser for the output of cif_cod_deposit script.
-    """
+    """Parser implementation for the `CifCodDepositCalculation` plugin."""
 
-    def __init__(self, calc):
-        self._supported_calculation_class = CifCodDepositCalculation
-        super(CifCodDepositParser, self).__init__(calc)
+    _supported_calculation_class = CifCodDepositCalculation
 
-    def _get_output_nodes(self, output_path, error_path):
+    def parse_stdout(self, filelike):
+        """Parse the content written by the script to standard out.
+
+        :param filelike: filelike object of stdout
+        :returns: an exit code in case of an error, None otherwise
         """
-        Extracts output nodes from the standard output and standard error files
-        """
-        status = cod_deposition_states.UNKNOWN
-        messages = []
+        content = filelike.read().strip()
 
-        if output_path is not None:
-            content = None
-            with open(output_path) as f:
-                content = f.read()
-            status, message = CifCodDepositParser._deposit_result(content)
-            messages.extend(message.split('\n'))
+        if not content:
+            return self.exit_codes.ERROR_EMPTY_OUTPUT_FILE
 
-        if error_path is not None:
-            with open(error_path) as f:
-                content = f.readlines()
-            lines = [x.strip('\n') for x in content]
-            messages.extend(lines)
+        # The incoming `filelike` is opened in binary mode, so to allow string operations we first need to decode
+        content = content.decode()
+        content = re.sub(r'^[^:]*cif-deposit\.pl:\s+', '', content)
+        content = re.sub(r'\n$', '', content)
 
-        parameters = {'output_messages': messages, 'status': status}
+        regex_deposited = re.search(r'^(structures .+ were successfully deposited into .?COD)$', content)
+        regex_duplicate = re.search(r'^(the following structures seem to be already in .?COD):', content, re.IGNORECASE)
+        regex_redeposition = re.search(r'^(redeposition of structure is unnecessary)', content)
+        regex_invalid_input = re.search(r'<p class="error"[^>]*>[^:]+: (.*)', content, re.IGNORECASE)
 
-        output_nodes = []
-        output_nodes.append(('messages', Dict(dict=parameters)))
-
-        if status == cod_deposition_states.SUCCESS:
-            return True, output_nodes
-
-        return False, output_nodes
-
-    @classmethod
-    def _deposit_result(cls, output):
-
-        status = cod_deposition_states.UNKNOWN
-        message = ''
-
-        output = re.sub(r'^[^:]*cif-deposit\.pl:\s+', '', output)
-        output = re.sub(r'\n$', '', output)
-
-        dep = re.search(r'^(structures .+ were successfully deposited into .?COD)$', output)
-        dup = re.search(r'^(the following structures seem to be already in .?COD):', output, re.IGNORECASE)
-        red = re.search(r'^(redeposition of structure is unnecessary)', output)
-        lgn = re.search(r'<p class="error"[^>]*>[^:]+: (.*)', output, re.IGNORECASE)
-
-        if dep is not None:
-            status = cod_deposition_states.SUCCESS
-            message = dep.group(1)
-        elif dup is not None:
-            status = cod_deposition_states.DUPLICATE
-            message = dup.group(1)
-        elif red is not None:
-            status = cod_deposition_states.UNCHANGED
-            message = dup.group(1)
-        elif lgn is not None:
-            status = cod_deposition_states.INPUTERROR
-            message = lgn.group(1)
+        if regex_deposited is not None:
+            exit_code = None
+        elif regex_duplicate is not None:
+            exit_code = self.exit_codes.ERROR_DEPOSITION_DUPLICATE
+        elif regex_redeposition is not None:
+            exit_code = self.exit_codes.ERROR_DEPOSITION_UNCHANGED
+        elif regex_invalid_input is not None:
+            exit_code = self.exit_codes.ERROR_DEPOSITION_INVALID_INPUT
         else:
-            status = cod_deposition_states.INPUTERROR
-            message = output
+            exit_code = self.exit_codes.ERROR_DEPOSITION_UNKNOWN
 
-        return status, message
+        return exit_code

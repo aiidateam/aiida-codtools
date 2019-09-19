@@ -1,89 +1,85 @@
 # -*- coding: utf-8 -*-
 """CalcJob plugin for the `cif_cod_deposit` script of the `cod-tools` package."""
 from __future__ import absolute_import
+
+import copy
+
 from aiida.common import datastructures
-from aiida.common import exceptions
 from aiida_codtools.calculations.cif_base import CifBaseCalculation
 
 
 class CifCodDepositCalculation(CifBaseCalculation):
-    """
-    Specific input plugin for cif_cod_deposit from cod-tools package
-    """
+    """CalcJob plugin for the `cif_cod_deposit` script of the `cod-tools` package."""
 
-    def _init_internal_params(self):
-        super(CifCodDepositCalculation, self)._init_internal_params()
+    filename_cif = 'deposit.cif'
+    filename_config = 'config.conf'
 
-        self._default_parser = 'codtools.cif_cod_deposit'
-        self._CONFIG_FILE = 'config.conf'
-        default_url = 'http://test.crystallography.net/cgi-bin/cif-deposit.pl'
-        self._default_commandline_params = [
-            '--use-rm', '--read-stdin', '--output-mode', 'stdout', '--no-print-timestamps', '--url', default_url,
-            '--config', self._CONFIG_FILE
-        ]
+    _config_keys = ['username', 'password', 'journal', 'user_email', 'author_name', 'author_email', 'hold_period']
+    _default_parser = 'codtools.cif_cod_deposit'
+    _default_cli_parameters = {
+        'use-rm': True,
+        'read-stdin': True,
+        'output-mode': 'stdout',
+        'no-print-timestamps': True,
+        'url': 'http://test.crystallography.net/cgi-bin/cif-deposit.pl',
+        'config': filename_config
+    }
 
-        self._config_keys = [
-            'username', 'password', 'journal', 'user_email', 'author_name', 'author_email', 'hold_period'
-        ]
+    @classmethod
+    def define(cls, spec):
+        # yapf: disable
+        super(CifCodDepositCalculation, cls).define(spec)
+        spec.exit_code(400, 'ERROR_DEPOSITION_UNKNOWN',
+            message='The deposition failed for unknown reasons.')
+        spec.exit_code(410, 'ERROR_DEPOSITION_INVALID_INPUT',
+            message='The deposition failed because the input was invalid.')
+        spec.exit_code(420, 'ERROR_DEPOSITION_DUPLICATE',
+            message='The deposition failed because one or more CIFs already exist in the COD.')
+        spec.exit_code(430, 'ERROR_DEPOSITION_UNCHANGED',
+            message='The structure is unchanged and so deposition is unnecessary.')
 
-    def _prepare_for_submission(self, tempfolder, inputdict):
-        # pylint: disable=too-many-locals
-        from aiida.orm import CifData, Dict
-        from aiida_codtools.calculations import commandline_params_from_dict
-        import shutil
+    def prepare_for_submission(self, folder):
+        """This method is called prior to job submission with a set of calculation input nodes.
+
+        The inputs will be validated and sanitized, after which the necessary input files will be written to disk in a
+        temporary folder. A CalcInfo instance will be returned that contains lists of files that need to be copied to
+        the remote machine before job submission, as well as file lists that are to be retrieved after job completion.
+
+        :param folder: an aiida.common.folders.Folder to temporarily write files on disk
+        :returns: CalcInfo instance
+        """
+        from aiida_codtools.common.cli import CliParameters
 
         try:
-            cif = inputdict.pop(self.get_linkname('cif'))
-        except KeyError:
-            raise exceptions.InputValidationError('no CIF file is specified for deposition')
-        if not isinstance(cif, CifData):
-            raise exceptions.InputValidationError('cif is not of type CifData')
+            parameters = self.inputs.parameters.get_dict()
+        except AttributeError:
+            parameters = {}
 
-        parameters = inputdict.pop(self.get_linkname('parameters'), None)
-        if parameters is None:
-            parameters = Dict(dict={})
-        if not isinstance(parameters, Dict):
-            raise exceptions.InputValidationError('parameters is not of type Dict')
+        # The input file should simply contain the relative filename that contains the CIF to be deposited
+        with folder.open(self.options.input_filename, 'w') as handle:
+            handle.write(u'{}\n'.format(self.filename_cif))
 
-        code = inputdict.pop(self.get_linkname('code'), None)
-        if code is None:
-            raise exceptions.InputValidationError('No code found in input')
+        # Write parameters that relate to the config file to that file and remove them from the CLI parameters
+        with folder.open(self.filename_config, 'w') as handle:
+            for key in self._config_keys:
+                if key in parameters:
+                    handle.write(u'{}={}\n'.format(key, parameters.pop(key)))
 
-        parameters_dict = parameters.get_dict()
-
-        deposit_file_rel = 'deposit.cif'
-        deposit_file_abs = tempfolder.get_abs_path(deposit_file_rel)
-        shutil.copy(cif.get_file_abs_path(), deposit_file_abs)
-
-        input_filename = tempfolder.get_abs_path(self._DEFAULT_INPUT_FILE)
-        with open(input_filename, 'w') as f:
-            f.write('{}\n'.format(deposit_file_rel))
-            f.flush()
-
-        config_file_abs = tempfolder.get_abs_path(self._CONFIG_FILE)
-        with open(config_file_abs, 'w') as f:
-            for k in self._config_keys:
-                if k in list(parameters_dict.keys()):
-                    f.write('{}={}\n'.format(k, parameters_dict.pop(k)))
-            f.flush()
-
-        commandline_params = self._default_commandline_params
-        commandline_params.extend(commandline_params_from_dict(parameters_dict))
-
-        calcinfo = datastructures.CalcInfo()
-        calcinfo.uuid = self.uuid
-        # The command line parameters should be generated from 'parameters'
-        calcinfo.local_copy_list = []
-        calcinfo.remote_copy_list = []
-        calcinfo.retrieve_list = [self._DEFAULT_OUTPUT_FILE, self._DEFAULT_ERROR_FILE]
-        calcinfo.retrieve_singlefile_list = []
+        cli_parameters = copy.deepcopy(self._default_cli_parameters)
+        cli_parameters.update(parameters)
 
         codeinfo = datastructures.CodeInfo()
-        codeinfo.cmdline_params = commandline_params
-        codeinfo.stdin_name = self._DEFAULT_INPUT_FILE
-        codeinfo.stdout_name = self._DEFAULT_OUTPUT_FILE
-        codeinfo.stderr_name = self._DEFAULT_ERROR_FILE
-        codeinfo.code_uuid = code.uuid
+        codeinfo.code_uuid = self.inputs.code.uuid
+        codeinfo.cmdline_params = CliParameters.from_dictionary(cli_parameters).get_list()
+        codeinfo.stdin_name = self.options.input_filename
+        codeinfo.stdout_name = self.options.output_filename
+        codeinfo.stderr_name = self.options.error_filename
+
+        calcinfo = datastructures.CalcInfo()
+        calcinfo.uuid = str(self.uuid)
         calcinfo.codes_info = [codeinfo]
+        calcinfo.retrieve_list = [self.options.output_filename, self.options.error_filename]
+        calcinfo.local_copy_list = [(self.inputs.cif.uuid, self.inputs.cif.filename, self.filename_cif)]
+        calcinfo.remote_copy_list = []
 
         return calcinfo

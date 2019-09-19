@@ -24,7 +24,7 @@ class CifBaseCalculation(CalcJob):
         spec.input('metadata.options.output_filename', valid_type=six.string_types, default='aiida.out',
             help='Filename to which the content of stdout of the code that is to be run will be written.')
         spec.input('metadata.options.error_filename', valid_type=six.string_types, default='aiida.err',
-            help='Filename to which the content of stdout of the code that is to be run will be written.')
+            help='Filename to which the content of stderr of the code that is to be run will be written.')
         spec.input('metadata.options.parser_name', valid_type=six.string_types, default=cls._default_parser,
             help='Define the parser to be used by setting its entry point name.')
         spec.input('metadata.options.attach_messages', valid_type=bool, default=False,

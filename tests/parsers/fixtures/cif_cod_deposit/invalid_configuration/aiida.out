@@ -1,0 +1,16 @@
+cif_cod_deposit: tests/fixtures/cif/Si.cif: NOTE, deposition started at Thu Sep 19 15:20:58 CEST 2019.
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+<head>
+<title>DB data deposition ERROR</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body>
+<p class="ERROR" style="color: red;font-size:large">cif-deposit.pl: password 'password' value from the upload form contains unallowed characters (not in '(.{4,64})')<br />
+</p>
+
+</body>
+</html>
+cif_cod_deposit: tests/fixtures/cif/Si.cif: NOTE, deposition finished at Thu Sep 19 15:21:00 CEST 2019.

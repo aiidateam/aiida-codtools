@@ -15,8 +15,6 @@
     args: ['-i']
     exclude: &exclude_files >
       (?x)^(
-        aiida_codtools/calculations/cif_cod_deposit.py|
-        aiida_codtools/parsers/cif_cod_deposit.py|
         docs/.*|
       )$
 
@@ -36,7 +34,7 @@
     pass_filenames: false
 
 - repo: https://github.com/python-modernize/python-modernize.git
-  sha: a234ce4e185cf77a55632888f1811d83b4ad9ef2
+  rev: a234ce4e185cf77a55632888f1811d83b4ad9ef2
   hooks:
   - id: python-modernize
     exclude: ^docs/
