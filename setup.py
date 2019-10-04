@@ -1,5 +1,6 @@
 """Setup for the `aiida-codtools` plugin which provides an interface for cod-tools scripts to `aiida-core`."""
 from __future__ import absolute_import
+from utils import fastentrypoints  # pylint: disable=unused-import
 
 
 def setup_package():
