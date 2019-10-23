@@ -31,22 +31,22 @@ def cmd_cif():
     '-o', '--skip-partial-occupancies', is_flag=True, default=False,
     help='Skip entries that have partial occupancies.')
 @click.option(
-    '-s', '--importer-server', type=click.STRING, required=False,
+    '-S', '--importer-server', type=click.STRING, required=False,
     help='Optional server address thats hosts the database.')
 @click.option(
-    '-h', '--importer-db-host', type=click.STRING, required=False,
+    '-H', '--importer-db-host', type=click.STRING, required=False,
     help='Optional hostname for the database.')
 @click.option(
-    '-m', '--importer-db-name', type=click.STRING, required=False,
+    '-D', '--importer-db-name', type=click.STRING, required=False,
     help='Optional name for the database.')
 @click.option(
-    '-p', '--importer-db-password', type=click.STRING, required=False,
+    '-P', '--importer-db-password', type=click.STRING, required=False,
     help='Optional password for the database.')
 @click.option(
-    '-u', '--importer-api-url', type=click.STRING, required=False,
+    '-U', '--importer-api-url', type=click.STRING, required=False,
     help='Optional API url for the database.')
 @click.option(
-    '-k', '--importer-api-key', type=click.STRING, required=False,
+    '-K', '--importer-api-key', type=click.STRING, required=False,
     help='Optional API key for the database.')
 @click.option(
     '-c', '--count-entries', is_flag=True, default=False,
