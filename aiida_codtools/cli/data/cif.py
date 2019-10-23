@@ -188,7 +188,7 @@ def launch_cif_import(group, database, max_entries, number_species, skip_partial
                 name = exception.__class__.__name__
                 echo_utc('Cif<{}> skipping: encountered an error retrieving cif data: {}'.format(source_id, name))
         else:
-            if skip_partial_occupancies and cif.has_partial_occupancies():
+            if skip_partial_occupancies and cif.has_partial_occupancies:
                 if verbose:
                     echo_utc('Cif<{}> skipping: contains partial occupancies'.format(source_id))
             else:

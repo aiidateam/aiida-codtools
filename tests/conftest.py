@@ -57,6 +57,27 @@ def fixture_database(fixture_environment):
     fixture_environment.reset_db()
 
 
+@pytest.fixture(scope='function')
+def run_cli_command():
+    """Run a `click` command with the given options.
+
+    The call will raise if the command triggered an exception or the exit code returned is non-zero
+    """
+
+    def _run_cli_command(command, options):
+        """Run the command and check the result."""
+        import traceback
+        from click.testing import CliRunner
+
+        runner = CliRunner()
+        result = runner.invoke(command, options)
+
+        assert result.exception is None, ''.join(traceback.format_exception(*result.exc_info))
+        assert result.exit_code == 0, result.output
+
+    return _run_cli_command
+
+
 @pytest.fixture
 def generate_code_localhost():
     """Return a `Code` instance configured to run calculations of given entry point on localhost `Computer`."""
