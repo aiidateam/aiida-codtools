@@ -9,7 +9,7 @@ from aiida import orm
 from aiida_codtools.cli.data.cif import launch_cif_import
 
 
-def test_cif_import(fixture_database, run_cli_command):
+def test_cif_import(clear_database, run_cli_command):
     """Test the `aiida-codtools data cif import` CLI command."""
     max_entries = 10
 

@@ -52,10 +52,9 @@
         ]
     },
     "install_requires": [
-        "aiida-core[atomic_tools]>=1.0.0b6",
+        "aiida-core[atomic_tools]>=1.0.0,<2.0.0",
         "click>=7.0",
-        "click-completion>=0.5.1",
-        "matplotlib<3.0.0; python_version<'3'"
+        "click-completion>=0.5.1"
     ],
     "license": "MIT License",
     "name": "aiida_codtools",

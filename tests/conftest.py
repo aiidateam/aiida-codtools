@@ -4,60 +4,12 @@ from __future__ import absolute_import
 
 import io
 import os
-import shutil
-import tempfile
-
 import pytest
 
-from aiida.manage.fixtures import fixture_manager
+pytest_plugins = ['aiida.manage.tests.pytest_fixtures']  # pylint: disable=invalid-name
 
 
-@pytest.fixture(scope='session')
-def fixture_environment():
-    """Setup a complete AiiDA test environment, with configuration, profile, database and repository."""
-    with fixture_manager() as manager:
-        yield manager
-
-
-@pytest.fixture(scope='session')
-def fixture_work_directory():
-    """Return a temporary folder that can be used as for example a computer's work directory."""
-    dirpath = tempfile.mkdtemp()
-    yield dirpath
-    shutil.rmtree(dirpath)
-
-
-@pytest.fixture(scope='function')
-def fixture_sandbox_folder():
-    """Return a `SandboxFolder`."""
-    from aiida.common.folders import SandboxFolder
-    with SandboxFolder() as folder:
-        yield folder
-
-
-@pytest.fixture(scope='function')
-def fixture_computer_localhost(fixture_work_directory):
-    """Return a `Computer` instance mocking a localhost setup."""
-    from aiida.orm import Computer
-    computer = Computer(
-        name='localhost',
-        hostname='localhost',
-        transport_type='local',
-        scheduler_type='direct',
-        workdir=fixture_work_directory
-    ).store()
-    computer.set_default_mpiprocs_per_machine(1)
-    yield computer
-
-
-@pytest.fixture(scope='function')
-def fixture_database(fixture_environment):
-    """Clear the database after each test."""
-    yield
-    fixture_environment.reset_db()
-
-
-@pytest.fixture(scope='function')
+@pytest.fixture
 def run_cli_command():
     """Run a `click` command with the given options.
 
@@ -78,28 +30,44 @@ def run_cli_command():
     return _run_cli_command
 
 
+@pytest.fixture(scope='function')
+def fixture_sandbox():
+    """Return a `SandboxFolder`."""
+    from aiida.common.folders import SandboxFolder
+    with SandboxFolder() as folder:
+        yield folder
+
+
 @pytest.fixture
-def generate_code_localhost():
+def fixture_localhost(aiida_localhost):
+    """Return a localhost `Computer`."""
+    localhost = aiida_localhost
+    localhost.set_default_mpiprocs_per_machine(1)
+    return localhost
+
+
+@pytest.fixture
+def fixture_code(fixture_localhost):
     """Return a `Code` instance configured to run calculations of given entry point on localhost `Computer`."""
 
-    def _generate_code_localhost(entry_point_name, computer):
+    def _fixture_code(entry_point_name):
         from aiida.orm import Code
         plugin_name = entry_point_name
-        remote_computer_exec = [computer, '/bin/true']
+        remote_computer_exec = [fixture_localhost, '/bin/true']
         return Code(input_plugin_name=plugin_name, remote_computer_exec=remote_computer_exec)
 
-    return _generate_code_localhost
+    return _fixture_code
 
 
-@pytest.fixture
-def generate_calc_job():
+@pytest.fixture(scope='function')
+def fixture_calc_job():
     """Fixture to construct a new `CalcJob` instance and call `prepare_for_submission` for testing `CalcJob` classes.
 
     The fixture will return the `CalcInfo` returned by `prepare_for_submission` and the temporary folder that was
     passed to it, into which the raw input files will have been written.
     """
 
-    def _generate_calc_job(folder, entry_point_name, inputs=None):
+    def _fixture_calc_job(folder, entry_point_name, inputs=None):
         """Fixture to generate a mock `CalcInfo` for testing calculation jobs."""
         from aiida.engine.utils import instantiate_process
         from aiida.manage.manager import get_manager
@@ -115,14 +83,14 @@ def generate_calc_job():
 
         return process, calc_info
 
-    return _generate_calc_job
+    return _fixture_calc_job
 
 
-@pytest.fixture
-def generate_calc_job_node():
+@pytest.fixture(scope='function')
+def fixture_calc_job_node():
     """Fixture to generate a mock `CalcJobNode` for testing parsers."""
 
-    def _generate_calc_job_node(entry_point_name, computer, test_name, attributes=None):
+    def _fixture_calc_job_node(entry_point_name, computer, test_name, attributes=None):
         """Fixture to generate a mock `CalcJobNode` for testing parsers.
 
         :param entry_point_name: entry point name of the calculation class
@@ -159,7 +127,7 @@ def generate_calc_job_node():
 
         return node
 
-    return _generate_calc_job_node
+    return _fixture_calc_job_node
 
 
 @pytest.fixture

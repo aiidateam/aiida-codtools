@@ -3,14 +3,14 @@
 """Tests for the `CifCodCheckParser`."""
 
 
-def test_cif_cod_check(fixture_database, fixture_computer_localhost, generate_calc_job_node, generate_parser):
+def test_cif_cod_check(clear_database, fixture_localhost, fixture_calc_job_node, generate_parser):
     """Test a default `cif_cod_check` calculation."""
     entry_point_calc_job = 'codtools.cif_cod_check'
     entry_point_parser = 'codtools.cif_cod_check'
 
     attributes = {'attach_messages': True}
 
-    node = generate_calc_job_node(entry_point_calc_job, fixture_computer_localhost, 'default', attributes)
+    node = fixture_calc_job_node(entry_point_calc_job, fixture_localhost, 'default', attributes)
     parser = generate_parser(entry_point_parser)
     results, _ = parser.parse_from_node(node, store_provenance=False)
 
