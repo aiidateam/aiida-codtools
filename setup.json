@@ -9,6 +9,7 @@
     "description": "The official AiiDA plugin for cod-tools",
     "entry_points": {
         "aiida.calculations": [
+            "codtools.primitive_structure_from_cif = aiida_codtools.calculations.functions.primitive_structure_from_cif:primitive_structure_from_cif",
             "codtools.cif_base = aiida_codtools.calculations.cif_base:CifBaseCalculation",
             "codtools.cif_cell_contents = aiida_codtools.calculations.cif_cell_contents:CifCellContentsCalculation",
             "codtools.cif_cod_check = aiida_codtools.calculations.cif_cod_check:CifCodCheckCalculation",
@@ -27,7 +28,6 @@
             "codtools.cif_split_primitive = aiida_codtools.parsers.cif_split_primitive:CifSplitPrimitiveParser"
         ],
         "aiida.workflows": [
-            "codtools.primitive_structure_from_cif = aiida_codtools.workflows.functions.primitive_structure_from_cif:primitive_structure_from_cif",
             "codtools.cif_clean = aiida_codtools.workflows.cif_clean:CifCleanWorkChain"
         ],
         "console_scripts": [

@@ -121,7 +121,7 @@ class CifCleanWorkChain(WorkChain):
 
     def parse_cif_structure(self):
         """Parse a `StructureData` from the cleaned `CifData` returned by the `CifSelectCalculation`."""
-        from aiida_codtools.workflows.functions.primitive_structure_from_cif import primitive_structure_from_cif
+        from aiida_codtools.calculations.functions.primitive_structure_from_cif import primitive_structure_from_cif
 
         if self.ctx.cif.has_unknown_species:
             self.ctx.exit_code = self.exit_codes.ERROR_CIF_HAS_UNKNOWN_SPECIES
