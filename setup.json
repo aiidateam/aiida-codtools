@@ -2,9 +2,16 @@
     "author": "The AiiDA team",
     "author_email": "developers@aiida.net",
     "classifiers": [
+        "Development Status :: 5 - Production/Stable"
+        "Framework :: AiiDA",
         "License :: OSI Approved :: MIT License",
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: MacOS :: MacOS X",
+        "Programming Language :: Python",
         "Programming Language :: Python :: 2.7",
-        "Development Status :: 4 - Beta"
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7"
     ],
     "description": "The official AiiDA plugin for cod-tools",
     "entry_points": {
@@ -59,5 +66,5 @@
     "license": "MIT License",
     "name": "aiida_codtools",
     "url": "https://github.com/aiidateam/aiida-codtools",
-    "version": "2.0.0b1"
+    "version": "2.0.0"
 }
