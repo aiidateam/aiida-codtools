@@ -1,27 +1,29 @@
-dist: trusty
+dist: xenial
 sudo: required
 
 language: python
-
-python:
-    - "2.7"
-    - "3.6"
-
 cache: pip
 
+python:
+    - 2.7
+    - 3.5
+    - 3.6
+    - 3.7
+
 services:
-    - rabbitmq
     - postgresql
 
 addons:
-    postgresql: "9.6"
+    postgresql: 9.6
+    apt:
+        update: true
 
 before_install:
-    - pip install -U pip==18.1 wheel setuptools reentry numpy==1.16.4
+    - sudo apt install rabbitmq-server
+    - pip install -U pip wheel setuptools reentry numpy==1.16.4
 
 install:
-    - pip install .[dev,docs] --no-cache-dir
-    - pip install -U git+git://github.com/aiidateam/aiida_core.git@develop
+    - pip install .[dev,docs]
     - reentry scan
 
 env:
@@ -33,4 +35,4 @@ script:
     - if [ "$TEST_TYPE" == "pre-commit" ];then pre-commit install; pre-commit run --all-files || ( git status --short; git diff ; exit 1 ); fi
 
 git:
-  depth: 3
+    depth: 3
