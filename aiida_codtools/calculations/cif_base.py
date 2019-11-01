@@ -38,21 +38,19 @@ class CifBaseCalculation(CalcJob):
         spec.output('messages', valid_type=Dict, required=False,
             help='Warning and error messages returned by script.')
 
-        spec.exit_code(100, 'ERROR_NO_RETRIEVED_FOLDER',
-            message='The retrieved folder data node could not be accessed.')
-        spec.exit_code(110, 'ERROR_NO_OUTPUT_FILES',
+        spec.exit_code(300, 'ERROR_NO_OUTPUT_FILES',
             message='Neither the output for the error file could be read from the retrieved folder.')
-        spec.exit_code(111, 'ERROR_READING_OUTPUT_FILE',
+        spec.exit_code(311, 'ERROR_READING_OUTPUT_FILE',
             message='The output file could not be read from the retrieved folder.')
-        spec.exit_code(112, 'ERROR_READING_ERROR_FILE',
+        spec.exit_code(312, 'ERROR_READING_ERROR_FILE',
             message='The error file could not be read from the retrieved folder.')
-        spec.exit_code(113, 'ERROR_EMPTY_OUTPUT_FILE',
+        spec.exit_code(313, 'ERROR_EMPTY_OUTPUT_FILE',
             message='The output file is empty.')
-        spec.exit_code(120, 'ERROR_INVALID_COMMAND_LINE_OPTION',
+        spec.exit_code(320, 'ERROR_INVALID_COMMAND_LINE_OPTION',
             message='Invalid command line option passed.')
-        spec.exit_code(130, 'ERROR_PARSING_OUTPUT_DATA',
+        spec.exit_code(400, 'ERROR_PARSING_OUTPUT_DATA',
             message='The output file could not be parsed.')
-        spec.exit_code(131, 'ERROR_PARSING_CIF_DATA',
+        spec.exit_code(410, 'ERROR_PARSING_CIF_DATA',
             message='The output file could not be parsed into a CifData object.')
 
     def _validate_resources(self):

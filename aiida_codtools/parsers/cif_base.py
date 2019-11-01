@@ -30,11 +30,7 @@ class CifBaseParser(Parser):
 
     def parse(self, **kwargs):
         """Parse the contents of the output files retrieved in the `FolderData`."""
-        try:
-            output_folder = self.retrieved
-        except exceptions.NotExistent:
-            return self.exit_codes.ERROR_NO_RETRIEVED_FOLDER
-
+        output_folder = self.retrieved
         filename_stdout = self.node.get_attribute('output_filename')
         filename_stderr = self.node.get_attribute('error_filename')
 

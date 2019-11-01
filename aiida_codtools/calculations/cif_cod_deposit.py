@@ -29,13 +29,13 @@ class CifCodDepositCalculation(CifBaseCalculation):
     def define(cls, spec):
         # yapf: disable
         super(CifCodDepositCalculation, cls).define(spec)
-        spec.exit_code(400, 'ERROR_DEPOSITION_UNKNOWN',
+        spec.exit_code(300, 'ERROR_DEPOSITION_UNKNOWN',
             message='The deposition failed for unknown reasons.')
-        spec.exit_code(410, 'ERROR_DEPOSITION_INVALID_INPUT',
+        spec.exit_code(310, 'ERROR_DEPOSITION_INVALID_INPUT',
             message='The deposition failed because the input was invalid.')
-        spec.exit_code(420, 'ERROR_DEPOSITION_DUPLICATE',
+        spec.exit_code(410, 'ERROR_DEPOSITION_DUPLICATE',
             message='The deposition failed because one or more CIFs already exist in the COD.')
-        spec.exit_code(430, 'ERROR_DEPOSITION_UNCHANGED',
+        spec.exit_code(420, 'ERROR_DEPOSITION_UNCHANGED',
             message='The structure is unchanged and so deposition is unnecessary.')
 
     def prepare_for_submission(self, folder):
