@@ -2,7 +2,7 @@
 
 This is the official AiiDA plugin for [cod-tools](http://wiki.crystallography.net/cod-tools/)
 
-[![Build Status](https://travis-ci.org/aiidateam/aiida-codtools.svg?branch=develop)](https://travis-ci.org/aiidateam/aiida-codtools)
+[![Build Status](https://github.com/aiidateam/aiida-codtools/workflows/aiida-codtools/badge.svg)](https://github.com/aiidateam/aiida-codtools/actions)
 [![Docs status](https://readthedocs.org/projects/aiida-codtools/badge)](http://aiida-codtools.readthedocs.io/)
 [![PyPI version](https://badge.fury.io/py/aiida-codtools.svg)](https://badge.fury.io/py/aiida-codtools)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/aiida-core.svg)](https://pypi.python.org/pypi/aiida-core/)
