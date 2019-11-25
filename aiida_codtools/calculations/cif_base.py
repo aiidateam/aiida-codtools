@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Generic `CalcJob` implementation that can easily be extended to work with any of the `cod-tools` scripts."""
-from __future__ import absolute_import
 import copy
-import six
 
 from aiida.common import datastructures, exceptions
 from aiida.engine import CalcJob
@@ -18,14 +16,14 @@ class CifBaseCalculation(CalcJob):
     @classmethod
     def define(cls, spec):
         # yapf: disable
-        super(CifBaseCalculation, cls).define(spec)
-        spec.input('metadata.options.input_filename', valid_type=six.string_types, default='aiida.in',
+        super().define(spec)
+        spec.input('metadata.options.input_filename', valid_type=str, default='aiida.in',
             help='Filename to which the input for the code that is to be run will be written.')
-        spec.input('metadata.options.output_filename', valid_type=six.string_types, default='aiida.out',
+        spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out',
             help='Filename to which the content of stdout of the code that is to be run will be written.')
-        spec.input('metadata.options.error_filename', valid_type=six.string_types, default='aiida.err',
+        spec.input('metadata.options.error_filename', valid_type=str, default='aiida.err',
             help='Filename to which the content of stderr of the code that is to be run will be written.')
-        spec.input('metadata.options.parser_name', valid_type=six.string_types, default=cls._default_parser,
+        spec.input('metadata.options.parser_name', valid_type=str, default=cls._default_parser,
             help='Define the parser to be used by setting its entry point name.')
         spec.input('metadata.options.attach_messages', valid_type=bool, default=False,
             help='When True, warnings and errors written to stderr will be attached as the `messages` output node')

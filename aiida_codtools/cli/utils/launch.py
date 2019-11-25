@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Module with launch utitlies for the CLI."""
-from __future__ import absolute_import
 
 import click
 

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Parser implementation for the `CifCodNumbersCalculation` plugin."""
-from __future__ import absolute_import
 import re
 import traceback
 

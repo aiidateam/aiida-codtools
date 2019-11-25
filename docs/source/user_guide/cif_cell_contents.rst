@@ -28,11 +28,11 @@ Outputs
 
     would print::
 
-        {u'formulae': {
-            u'4000001': u'C24 H17 F5 Fe',
-            u'4000002': u'C24 H17 F5 Fe',
-            u'4000003': u'C24 H17 F5 Fe',
-            u'4000004': u'C22 H8 F10 Fe'
+        {'formulae': {
+            '4000001': 'C24 H17 F5 Fe',
+            '4000002': 'C24 H17 F5 Fe',
+            '4000003': 'C24 H17 F5 Fe',
+            '4000004': 'C22 H8 F10 Fe'
                       }})
 
     .. note:: ``data_`` is not prepended to the CIF datablock name -- the

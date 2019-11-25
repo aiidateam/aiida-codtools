@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Command line interface script to launch `CifCleanWorkChain` per node or in bulk."""
 # yapf: disable
-from __future__ import absolute_import
 import click
 
 from aiida.cmdline.params import types

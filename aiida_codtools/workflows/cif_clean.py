@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """WorkChain to clean a `CifData` using `cif_filter` and `cif_select` from cod-tools and parse a `StructureData`."""
 # pylint: disable=inconsistent-return-statements,no-member
-from __future__ import absolute_import
 
 from aiida import orm
 from aiida.common import exceptions
@@ -24,7 +23,7 @@ class CifCleanWorkChain(WorkChain):
     @classmethod
     def define(cls, spec):
         # yapf: disable
-        super(CifCleanWorkChain, cls).define(spec)
+        super().define(spec)
         spec.expose_inputs(CifFilterCalculation, namespace='cif_filter', exclude=('cif',))
         spec.expose_inputs(CifSelectCalculation, namespace='cif_select', exclude=('cif',))
         spec.input('cif', valid_type=orm.CifData,

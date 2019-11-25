@@ -78,7 +78,7 @@ Outputs
 
     would print::
 
-        {u'output_messages': [u'cif_cod_check: test.cif data_4000000: _publ_section_title is undefined']}
+        {'output_messages': ['cif_cod_check: test.cif data_4000000: _publ_section_title is undefined']}
 
 Errors
 ------

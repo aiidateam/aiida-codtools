@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Calculation function to generate a primitive structure from a `CifData` using Seekpath."""
-from __future__ import absolute_import
 from seekpath.hpkot import SymmetryDetectionError
 
 from aiida.common import exceptions

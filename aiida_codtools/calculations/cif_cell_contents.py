@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """CalcJob plugin for the `cif_cell_contents` script of the `cod-tools` package."""
-from __future__ import absolute_import
 
 from aiida.orm import Dict
 from aiida_codtools.calculations.cif_base import CifBaseCalculation
@@ -15,5 +14,5 @@ class CifCellContentsCalculation(CifBaseCalculation):
     @classmethod
     def define(cls, spec):
         # yapf: disable
-        super(CifCellContentsCalculation, cls).define(spec)
+        super().define(spec)
         spec.output('formulae', valid_type=Dict, help='A dictionary of formulae present in the CIF.')

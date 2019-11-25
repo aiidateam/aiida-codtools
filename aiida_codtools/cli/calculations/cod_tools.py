@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Command line interface script to launch almost any cod-tools calculation through AiiDA."""
 # yapf: disable
-from __future__ import absolute_import
 
 import click
 

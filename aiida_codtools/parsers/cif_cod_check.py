@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Parser implementation for the `CifCodCheckCalculation` plugin."""
-from __future__ import absolute_import
 
 from aiida_codtools.calculations.cif_cod_check import CifCodCheckCalculation
 from aiida_codtools.parsers.cif_base import CifBaseParser

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Generic `Parser` implementation that can easily be extended to work with any of the `cod-tools` scripts."""
-from __future__ import absolute_import
 import traceback
 
 from aiida.common import exceptions
@@ -20,7 +19,7 @@ class CifBaseParser(Parser):
     _supported_calculation_class = CifBaseCalculation
 
     def __init__(self, node):
-        super(CifBaseParser, self).__init__(node)
+        super().__init__(node)
         if not issubclass(node.process_class, self._supported_calculation_class):
             raise exceptions.ParsingError(
                 'Node process class must be a {} but node<{}> has process class {}'.format(

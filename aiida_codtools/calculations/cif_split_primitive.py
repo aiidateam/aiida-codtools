@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """CalcJob plugin for the `cif_split_primitive` script of the `cod-tools` package."""
-from __future__ import absolute_import
 
 import os
 from aiida.orm import CifData
@@ -16,11 +15,11 @@ class CifSplitPrimitiveCalculation(CifBaseCalculation):
     @classmethod
     def define(cls, spec):
         # yapf: disable
-        super(CifSplitPrimitiveCalculation, cls).define(spec)
+        super().define(spec)
         spec.output_namespace('cifs', valid_type=CifData, help='The CIFs produced by the script.', dynamic=True)
 
     def prepare_for_submission(self, folder):
-        calcinfo = super(CifSplitPrimitiveCalculation, self).prepare_for_submission(folder)
+        calcinfo = super().prepare_for_submission(folder)
 
         split_dir = folder.get_abs_path(self._directory_split)
         os.mkdir(split_dir)

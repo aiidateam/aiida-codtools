@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-argument,too-many-arguments
 """Tests for the `CifCodDepositCalculation` class."""
-from __future__ import absolute_import
 
 from aiida import orm
 from aiida.common import datastructures

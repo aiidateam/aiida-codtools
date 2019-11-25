@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Parser implementation for the `CifSplitPrimitiveCalculation` plugin."""
-from __future__ import absolute_import
 import os
 import traceback
 

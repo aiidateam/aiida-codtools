@@ -56,13 +56,13 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'aiida-codtools'
+project = 'aiida-codtools'
 copyright_first_year = 2014
 copyright_owners = 'ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE (Theory and Simulation of Materials (THEOS) and National Centre for Computational Design and Discovery of Novel Materials (NCCR MARVEL)), Switzerland'
 
 current_year = time.localtime().tm_year
 copyright_year_string = current_year if current_year == copyright_first_year else '{}-{}'.format(copyright_first_year, current_year)
-copyright = u'{}, {}. All rights reserved'.format(copyright_year_string, copyright_owners)
+copyright = '{}, {}. All rights reserved'.format(copyright_year_string, copyright_owners)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

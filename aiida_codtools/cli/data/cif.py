@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # yapf:disable
 """Command line interface script to import CIF files from external databases into `CifData` nodes."""
-from __future__ import absolute_import
 
 import click
 
@@ -74,7 +73,7 @@ def launch_cif_import(group, database, max_entries, number_species, skip_partial
     import inspect
     from CifFile.StarFile import StarError
     from datetime import datetime
-    from six.moves.urllib.error import HTTPError
+    from urllib.error import HTTPError
 
     from aiida import orm
     from aiida.plugins import factories

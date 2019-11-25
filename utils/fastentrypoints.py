@@ -32,7 +32,7 @@
 # LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-'''
+"""
 Monkey patch setuptools to write faster console_scripts with this format:
 
     import sys
@@ -43,10 +43,7 @@ This is better.
 
 (c) 2016, Aaron Christianson
 http://github.com/ninjaaron/fast-entry_points
-'''
-from __future__ import division
-from __future__ import absolute_import
-from __future__ import print_function
+"""
 import re
 from setuptools.command import easy_install
 

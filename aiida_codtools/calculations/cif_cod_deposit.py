@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """CalcJob plugin for the `cif_cod_deposit` script of the `cod-tools` package."""
-from __future__ import absolute_import
 
 import copy
 
@@ -28,7 +27,7 @@ class CifCodDepositCalculation(CifBaseCalculation):
     @classmethod
     def define(cls, spec):
         # yapf: disable
-        super(CifCodDepositCalculation, cls).define(spec)
+        super().define(spec)
         spec.exit_code(300, 'ERROR_DEPOSITION_UNKNOWN',
             message='The deposition failed for unknown reasons.')
         spec.exit_code(310, 'ERROR_DEPOSITION_INVALID_INPUT',
@@ -57,13 +56,13 @@ class CifCodDepositCalculation(CifBaseCalculation):
 
         # The input file should simply contain the relative filename that contains the CIF to be deposited
         with folder.open(self.options.input_filename, 'w') as handle:
-            handle.write(u'{}\n'.format(self.filename_cif))
+            handle.write('{}\n'.format(self.filename_cif))
 
         # Write parameters that relate to the config file to that file and remove them from the CLI parameters
         with folder.open(self.filename_config, 'w') as handle:
             for key in self._config_keys:
                 if key in parameters:
-                    handle.write(u'{}={}\n'.format(key, parameters.pop(key)))
+                    handle.write('{}={}\n'.format(key, parameters.pop(key)))
 
         cli_parameters = copy.deepcopy(self._default_cli_parameters)
         cli_parameters.update(parameters)

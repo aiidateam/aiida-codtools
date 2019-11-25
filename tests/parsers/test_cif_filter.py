@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-argument
 """Tests for the `CifBaseParser`."""
-from __future__ import absolute_import
 from aiida_codtools.calculations.cif_filter import CifFilterCalculation
 
 

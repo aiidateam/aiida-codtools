@@ -1,14 +1,11 @@
 """Module with CLI utilities to translate command line parameters strings to dictionaries and vice versa."""
-from __future__ import absolute_import
 
 import collections
 import itertools
 import shlex
-import six
-from six.moves import zip
 
 
-class CliParameters(object):  # pylint: disable=useless-object-inheritance
+class CliParameters:
     """Object to represent command line parameters that are passed to a cod-tools script.
 
     It can be constructed from a dictionary or single string representation and provides methods to return those
@@ -47,7 +44,7 @@ class CliParameters(object):  # pylint: disable=useless-object-inheritance
         if string is None:
             string = ''
 
-        if not isinstance(string, six.string_types):
+        if not isinstance(string, str):
             raise TypeError('string has to be a string type, got: {}'.format(type(string)))
 
         dictionary = {}

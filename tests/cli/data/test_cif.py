@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-argument,too-many-arguments
 """Tests for the `aiida-codtools data cif` CLI command."""
-from __future__ import absolute_import
 
 from uuid import uuid4 as UUID
 
