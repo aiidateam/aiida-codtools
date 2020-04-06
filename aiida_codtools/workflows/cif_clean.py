@@ -73,6 +73,10 @@ class CifCleanWorkChain(WorkChain):
             message='SeeKpath failed to determine the primitive structure.')
         spec.exit_code(421, 'ERROR_SEEKPATH_INCONSISTENT_SYMMETRY',
             message='SeeKpath detected inconsistent symmetry operations.')
+        spec.exit_code(430, 'ERROR_FORMULA_MISSING_ELEMENTS',
+            message='The structure has missing elements/sites, compared to the cif chemical formula.')
+        spec.exit_code(431, 'ERROR_FORMULA_DIFFERENT_COMPOSITION',
+            message='The structure has different chemical composition, compared to the cif chemical formula.')
 
     def run_filter_calculation(self):
         """Run the CifFilterCalculation on the CifData input node."""
