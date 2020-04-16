@@ -31,6 +31,7 @@ def get_formula_from_cif(cif):
     return formula
 
 
+# this function should be moved to aiida.orm.nodes.data.cif
 def parse_formula(formula):
     """
     Parses the Hill formulae. Does not need spaces as separators.
@@ -120,10 +121,6 @@ def check_formulas(cif, structure):
     from CifFile import StarError
     report = ''
 
-    if has_partial_occupancies(structure):
-        report += ' | Partial occupancies not supported'
-        return report
-
     # get chemical formulas
     formula_s = structure.get_formula('hill', ' ')
     formula_c = None
@@ -155,6 +152,10 @@ def check_formulas(cif, structure):
         report += ' | Missing elements: {}'.format(missing_elements)
         raise MissingElementsError(report)
         #return False, report
+
+    if has_partial_occupancies(structure):
+        report += ' | Partial occupancies not supported'
+        return report
 
     # find inconsistent formulas
     # *** We should rewrite using ratios -- need to choose the thresholds carefully ***
@@ -188,7 +189,7 @@ def check_formulas(cif, structure):
 
 
 @calcfunction
-def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance):
+def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance, occupancy_tolerance):
     # pylint: disable=too-many-return-statements
     """Attempt to parse the given `CifData` and create a `StructureData` from it.
 
@@ -200,13 +201,19 @@ def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance):
     :param parse_engine: the parsing engine, supported libraries 'ase' and 'pymatgen'
     :param symprec: a `Float` node with symmetry precision for determining primitive cell in SeeKpath
     :param site_tolerance: a `Float` node with the fractional coordinate distance tolerance for finding overlapping
-        sites. This will only be used if the parse_engine is pymatgen
+    :param occupancy_tolerance: a `Float` node with the occupancy tolerance below which occupancies will be scaled down
+           to 1. This will only be used if the parse_engine is pymatgen
     :return: the primitive `StructureData` as determined by SeeKpath
     """
     CifCleanWorkChain = WorkflowFactory('codtools.cif_clean')  # pylint: disable=invalid-name
 
     try:
-        structure = cif.get_structure(converter=parse_engine.value, site_tolerance=site_tolerance.value, store=False)
+        structure = cif.get_structure(
+            converter=parse_engine.value,
+            site_tolerance=site_tolerance.value,
+            occupancy_tolerance=occupancy_tolerance.value,
+            store=False
+        )
     except exceptions.UnsupportedSpeciesError:
         return CifCleanWorkChain.exit_codes.ERROR_CIF_HAS_UNKNOWN_SPECIES
     except InvalidOccupationsError:
@@ -230,6 +237,7 @@ def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance):
         'formula_hill': structure.get_formula(mode='hill'),
         'formula_hill_compact': structure.get_formula(mode='hill_compact'),
         'chemical_system': '-{}-'.format('-'.join(sorted(structure.get_symbols_set()))),
+        'has_partial_occupancies': has_partial_occupancies(structure),
     }
 
     for key in ['spacegroup_international', 'spacegroup_number', 'bravais_lattice', 'bravais_lattice_extended']:
@@ -249,5 +257,8 @@ def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance):
         return CifCleanWorkChain.exit_codes.ERROR_FORMULA_DIFFERENT_COMPOSITION
     else:
         print(report_msg)
+
+    structure.set_extra('check_formula_log', report_msg)
+    structure.label = structure.get_extra('formula_hill')
 
     return structure
