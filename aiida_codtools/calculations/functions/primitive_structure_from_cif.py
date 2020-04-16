@@ -145,9 +145,9 @@ def check_formulas(cif, structure):
     for key in [key for key, value in formuladic_c.items() if value == 0.]:
         formuladic_c.pop(key)
 
-    # find missing elements
+    # find missing elements, ignore vacancies ('X')
     # (symmetric difference of the sets -- contains elements not present in both sets)
-    missing_elements = set(formuladic_s.keys()) ^ set(formuladic_c.keys())
+    missing_elements = (set(formuladic_s.keys()) ^ set(formuladic_c.keys())) - {'X'}
     if missing_elements:
         report += ' | Missing elements: {}'.format(missing_elements)
         raise MissingElementsError(report)
