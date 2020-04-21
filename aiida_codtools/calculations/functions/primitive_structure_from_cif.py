@@ -53,7 +53,7 @@ def parse_formula(formula):
     #print('FORMULA: "{}"'.format(formula))
     contents = {}
     # split blocks with parentheses
-    for block in re.split(r'(\[[^\]]*\][^A-Z\[]*|\([^\)]*\)[^A-Z\(]*|\{[^\}]*\}[^A-Z\{]*)', formula):
+    for block in re.split(r'(\([^\)]*\)[^A-Z\(\[\{]*|\[[^\]]*\][^A-Z\(\[\{]*|\{[^\}]*\}[^A-Z\(\[\{]*)', formula):
         if not block:  # block is void
             continue
         #print('BLOCK: "{}"'.format(block))
