@@ -47,6 +47,9 @@ from . import cmd_launch
     '-T', '--site-tolerance', type=click.FLOAT, default=5e-4, show_default=True,
     help='The fractional coordinate distance tolerance for finding overlapping sites (pymatgen only).')
 @click.option(
+    '-F', '--skip-formula-check', is_flag=True, default=False,
+    help='Skip the formula check that compares the structure with the chemical formula in the cif file.')
+@click.option(
     '-O', '--occupancy-tolerance', type=click.FLOAT, default=1.0, show_default=True,
     help='If total occupancy of a site is between 1 and occupancy_tolerance, the occupancies will be scaled down to 1.')
 @click.option(
@@ -54,7 +57,7 @@ from . import cmd_launch
     help='Submit the process to the daemon instead of running it locally.')
 @decorators.with_dbenv()
 def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structure, group_workchain, node,
-    max_entries, skip_check, parse_engine, symprec, site_tolerance, occupancy_tolerance, daemon):
+    max_entries, skip_check, parse_engine, symprec, site_tolerance, skip_formula_check, occupancy_tolerance, daemon):
     """Run the `CifCleanWorkChain` on the entries in a group with raw imported CifData nodes.
 
     It will use the `cif_filter` and `cif_select` scripts of `cod-tools` to clean the input cif file. Additionally, if
@@ -144,6 +147,7 @@ def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, gro
     node_site_tolerance = get_input_node(orm.Float, site_tolerance)
     node_occupancy_tolerance = get_input_node(orm.Float, occupancy_tolerance)
     node_symprec = get_input_node(orm.Float, symprec)
+    node_skip_formula_check = get_input_node(orm.Bool, skip_formula_check)
 
     for cif in nodes:
 
@@ -167,6 +171,7 @@ def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, gro
             'site_tolerance': node_site_tolerance,
             'occupancy_tolerance': node_occupancy_tolerance,
             'symprec': node_symprec,
+            'skip_formula_check': node_skip_formula_check,
         }
 
         if group_cif_clean is not None:
