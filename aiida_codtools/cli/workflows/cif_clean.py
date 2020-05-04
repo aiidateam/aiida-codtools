@@ -29,8 +29,8 @@ from . import cmd_launch
     '-w', '--group-workchain', required=False, type=types.GroupParamType(),
     help='Group to which to add the WorkChain nodes.')
 @click.option(
-    '-N', '--node', type=types.DataParamType(sub_classes=('aiida.data:cif',)), default=None, required=False,
-    help='Specify the explicit CifData node for which to run the clean workchain.')
+    '-N', '--nodes', type=types.DataParamType(sub_classes=('aiida.data:cif',)), default=None, required=False, multiple=True,
+    help='Specify the explicit CifData nodes for which to run the clean workchain.')
 @click.option(
     '-M', '--max-entries', type=click.INT, default=None, show_default=True, required=False,
     help='Maximum number of CifData entries to clean.')
@@ -56,7 +56,7 @@ from . import cmd_launch
     '-d', '--daemon', is_flag=True, default=False, show_default=True,
     help='Submit the process to the daemon instead of running it locally.')
 @decorators.with_dbenv()
-def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structure, group_workchain, node,
+def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structure, group_workchain, nodes,
     max_entries, skip_check, parse_engine, symprec, site_tolerance, skip_formula_check, occupancy_tolerance, daemon):
     """Run the `CifCleanWorkChain` on the entries in a group with raw imported CifData nodes.
 
@@ -120,12 +120,8 @@ def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, gro
 
         nodes = [entry[0] for entry in builder.all()]
 
-    elif node is not None:
-
-        nodes = [node]
-
-    else:
-        raise click.BadParameter('you have to specify either --group-cif-raw or --node')
+    elif nodes is None:
+        raise click.BadParameter('you have to specify either --group-cif-raw or --nodes')
 
     counter = 0
 
