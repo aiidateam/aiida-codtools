@@ -29,7 +29,8 @@ from . import cmd_launch
     '-w', '--group-workchain', required=False, type=types.GroupParamType(),
     help='Group to which to add the WorkChain nodes.')
 @click.option(
-    '-N', '--nodes', type=types.DataParamType(sub_classes=('aiida.data:cif',)), default=None, required=False, multiple=True,
+    '-N', '--nodes', type=types.DataParamType(sub_classes=('aiida.data:cif',)),
+    default=None, required=False, multiple=True,
     help='Specify the explicit CifData nodes for which to run the clean workchain.')
 @click.option(
     '-M', '--max-entries', type=click.INT, default=None, show_default=True, required=False,

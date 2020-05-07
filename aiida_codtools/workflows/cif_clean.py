@@ -34,10 +34,10 @@ class CifCleanWorkChain(WorkChain):
             help='The symmetry precision used by SeeKpath for crystal symmetry refinement.')
         spec.input('site_tolerance', valid_type=orm.Float, default=lambda: orm.Float(5E-4),
             help='The fractional coordinate distance tolerance for finding overlapping sites (pymatgen only).')
-        spec.input('occupancy_tolerance', valid_type=orm.Float, default=orm.Float(1.0),
+        spec.input('occupancy_tolerance', valid_type=orm.Float, default=lambda: orm.Float(1.0),
             help='If total occupancy of a site is between 1 and occupancy_tolerance, the occupancies will be scaled'\
                     + 'down to 1 (pymatgen only).')
-        spec.input('skip_formula_check', valid_type=orm.Bool, default=orm.Bool(False),
+        spec.input('skip_formula_check', valid_type=orm.Bool, default=lambda: orm.Bool(False),
             help='Skip the formula check that compares the structure with the chemical formula in the cif file.')
         spec.input('group_cif', valid_type=orm.Group, required=False, non_db=True,
             help='An optional Group to which the final cleaned CifData node will be added.')
