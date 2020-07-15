@@ -9,8 +9,16 @@ from aiida.tools import get_kpoints_path
 from aiida.tools.data.cif import InvalidOccupationsError
 
 
+def has_partial_occupancies(structure):
+    """
+    Detect if a structure has partial occupancies (vacancies/substitutions).
+    """
+    return not structure.get_pymatgen().is_ordered
+
+
 @calcfunction
-def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance):
+def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance, occupancy_tolerance):
+    # pylint: disable=too-many-return-statements
     """Attempt to parse the given `CifData` and create a `StructureData` from it.
 
     First the raw CIF file is parsed with the given `parse_engine`. The resulting `StructureData` is then passed through
@@ -21,13 +29,19 @@ def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance):
     :param parse_engine: the parsing engine, supported libraries 'ase' and 'pymatgen'
     :param symprec: a `Float` node with symmetry precision for determining primitive cell in SeeKpath
     :param site_tolerance: a `Float` node with the fractional coordinate distance tolerance for finding overlapping
-        sites. This will only be used if the parse_engine is pymatgen
+    :param occupancy_tolerance: a `Float` node with the occupancy tolerance below which occupancies will be scaled down
+           to 1. This will only be used if the parse_engine is pymatgen
     :return: the primitive `StructureData` as determined by SeeKpath
     """
     CifCleanWorkChain = WorkflowFactory('codtools.cif_clean')  # pylint: disable=invalid-name
 
     try:
-        structure = cif.get_structure(converter=parse_engine.value, site_tolerance=site_tolerance.value, store=False)
+        structure = cif.get_structure(
+            converter=parse_engine.value,
+            site_tolerance=site_tolerance.value,
+            occupancy_tolerance=occupancy_tolerance.value,
+            store=False
+        )
     except exceptions.UnsupportedSpeciesError:
         return CifCleanWorkChain.exit_codes.ERROR_CIF_HAS_UNKNOWN_SPECIES
     except InvalidOccupationsError:
@@ -51,6 +65,7 @@ def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance):
         'formula_hill': structure.get_formula(mode='hill'),
         'formula_hill_compact': structure.get_formula(mode='hill_compact'),
         'chemical_system': '-{}-'.format('-'.join(sorted(structure.get_symbols_set()))),
+        'has_partial_occupancies': has_partial_occupancies(structure),
     }
 
     for key in ['spacegroup_international', 'spacegroup_number', 'bravais_lattice', 'bravais_lattice_extended']:
