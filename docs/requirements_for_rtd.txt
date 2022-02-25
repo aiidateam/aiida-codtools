@@ -1,5 +1,5 @@
 setuptools>34
 aiida-core>=1.0.0b6
 scipy==1.2.2
-numpy==1.16.4
+numpy==1.21.0
 matplotlib<3.0.0
