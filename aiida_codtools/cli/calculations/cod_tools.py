@@ -52,4 +52,4 @@ def launch_calculation(code, cif, parameters, daemon, dry_run):
     if parameters:
         inputs['parameters'] = orm.Dict(dict=parameters)
 
-    launch.launch_process(factories.CalculationFactory(code.get_attribute('input_plugin')), daemon, **inputs)
+    launch.launch_process(factories.CalculationFactory(code.base.attributes.get('input_plugin')), daemon, **inputs)

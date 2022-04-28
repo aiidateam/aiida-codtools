@@ -37,7 +37,7 @@ class CifSplitPrimitiveParser(CifBaseParser):
             for line in content.split('\n'):
                 filename = line.strip()
                 output_name = os.path.splitext(os.path.basename(filename))[0]
-                with self.retrieved.open(filename, 'rb') as handle:
+                with self.retrieved.base.repository.open(filename, 'rb') as handle:
                     cifs[output_name] = CifData(file=handle)
 
         except Exception:  # pylint: disable=broad-except

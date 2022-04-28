@@ -29,11 +29,11 @@ class CifBaseParser(Parser):
     def parse(self, **kwargs):
         """Parse the contents of the output files retrieved in the `FolderData`."""
         output_folder = self.retrieved
-        filename_stdout = self.node.get_attribute('output_filename')
-        filename_stderr = self.node.get_attribute('error_filename')
+        filename_stdout = self.node.base.attributes.get('output_filename')
+        filename_stderr = self.node.base.attributes.get('error_filename')
 
         try:
-            with output_folder.open(filename_stderr, 'r') as handle:
+            with output_folder.base.repository.open(filename_stderr, 'r') as handle:
                 exit_code = self.parse_stderr(handle)
         except (OSError, IOError):
             self.logger.exception('Failed to read the stderr file\n%s', traceback.format_exc())
@@ -43,7 +43,7 @@ class CifBaseParser(Parser):
             return exit_code
 
         try:
-            with output_folder.open(filename_stdout, 'rb') as handle:
+            with output_folder.base.repository.open(filename_stdout, 'rb') as handle:
                 handle.seek(0)
                 exit_code = self.parse_stdout(handle)
         except (OSError, IOError):

@@ -21,7 +21,7 @@ classifiers = [
 keywords = ['aiida', 'workflows']
 requires-python = '>=3.8'
 dependencies = [
-    'aiida-core[atomic_tools]~=2.0.0b1',
+    'aiida-core[atomic_tools]~=2.0',
 ]
 
 [project.urls]

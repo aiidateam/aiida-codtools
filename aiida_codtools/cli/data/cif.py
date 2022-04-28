@@ -121,7 +121,7 @@ def launch_cif_import(
     if importer_api_key is not None:
         importer_parameters['api_key'] = importer_api_key
 
-    importer_class = factories.DbImporterFactory(database)
+    importer_class = factories.DbImporterFactory(f'core.{database}')
     importer = importer_class(**importer_parameters)
 
     if database == 'mpds':
