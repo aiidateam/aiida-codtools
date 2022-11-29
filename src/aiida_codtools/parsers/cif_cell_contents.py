@@ -38,7 +38,7 @@ class CifCellContentsParser(CifBaseParser):
         except Exception:  # pylint: disable=broad-except
             self.logger.exception('Failed to parse formulae from the stdout file\n%s', traceback.format_exc())
             return self.exit_codes.ERROR_PARSING_OUTPUT_DATA
-        else:
-            self.out('formulae', Dict(dict=formulae))
+
+        self.out('formulae', Dict(dict=formulae))
 
         return

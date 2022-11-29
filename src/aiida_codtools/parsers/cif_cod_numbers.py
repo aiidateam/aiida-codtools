@@ -38,7 +38,7 @@ class CifCodNumbersParser(CifBaseParser):
         except Exception:  # pylint: disable=broad-except
             self.logger.exception('Failed to parse the numbers from the stdout file\n%s', traceback.format_exc())
             return self.exit_codes.ERROR_PARSING_OUTPUT_DATA
-        else:
-            self.out('numbers', Dict(dict=numbers))
+
+        self.out('numbers', Dict(dict=numbers))
 
         return

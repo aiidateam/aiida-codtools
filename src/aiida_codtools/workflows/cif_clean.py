@@ -178,8 +178,8 @@ class CifCleanWorkChain(WorkChain):
                 structure = self.ctx.structure
             except AttributeError:
                 return self.ctx.exit_code
-            else:
-                self.inputs.group_structure.add_nodes([structure])
-                self.out('structure', structure)
+
+            self.inputs.group_structure.add_nodes([structure])
+            self.out('structure', structure)
 
         self.report('workchain finished successfully')

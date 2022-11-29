@@ -70,8 +70,8 @@ class CifBaseParser(Parser):
         except StarError:
             self.logger.exception('Failed to parse a `CifData` from the stdout file\n%s', traceback.format_exc())
             return self.exit_codes.ERROR_PARSING_CIF_DATA
-        else:
-            self.out('cif', cif)
+
+        self.out('cif', cif)
 
         return
 
