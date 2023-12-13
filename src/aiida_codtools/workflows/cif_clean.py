@@ -34,6 +34,11 @@ class CifCleanWorkChain(WorkChain):
             help='The symmetry precision used by SeeKpath for crystal symmetry refinement.')
         spec.input('site_tolerance', valid_type=orm.Float, default=lambda: orm.Float(5E-4),
             help='The fractional coordinate distance tolerance for finding overlapping sites (pymatgen only).')
+        spec.input('occupancy_tolerance', valid_type=orm.Float, default=orm.Float(1.0),
+            help='If total occupancy of a site is between 1 and occupancy_tolerance, the occupancies will be scaled'\
+                    + 'down to 1 (pymatgen only).')
+        spec.input('skip_formula_check', valid_type=orm.Bool, default=orm.Bool(False),
+            help='Skip the formula check that compares the structure with the chemical formula in the cif file.')
         spec.input('group_cif', valid_type=orm.Group, required=False, non_db=True,
             help='An optional Group to which the final cleaned CifData node will be added.')
         spec.input('group_structure', valid_type=orm.Group, required=False, non_db=True,
@@ -46,6 +51,9 @@ class CifCleanWorkChain(WorkChain):
             cls.inspect_select_calculation,
             if_(cls.should_parse_cif_structure)(
                 cls.parse_cif_structure,
+                if_(cls.should_check_chemical_formula)(
+                    cls.check_chemical_formula,
+                ),
             ),
             cls.results,
         )
@@ -73,9 +81,15 @@ class CifCleanWorkChain(WorkChain):
             message='SeeKpath failed to determine the primitive structure.')
         spec.exit_code(421, 'ERROR_SEEKPATH_INCONSISTENT_SYMMETRY',
             message='SeeKpath detected inconsistent symmetry operations.')
+        spec.exit_code(430, 'ERROR_FORMULA_MISSING_ELEMENTS',
+            message='The structure has missing elements/sites, compared to the cif chemical formula.')
+        spec.exit_code(431, 'ERROR_FORMULA_DIFFERENT_COMPOSITION',
+            message='The structure\'s chemical composition is incompatible with the cif chemical formula.')
+        spec.exit_code(432, 'ERROR_FORMULA_CHECK_FAILED',
+            message='Failed to check chemical formulas.')
 
     def run_filter_calculation(self):
-        """Run the CifFilterCalculation on the CifData input node."""
+        """Run the `CifFilterCalculation` on the `CifData` input node."""
         inputs = self.exposed_inputs(CifFilterCalculation, namespace='cif_filter')
         inputs.metadata.call_link_label = 'cif_filter'
         inputs.cif = self.inputs.cif
@@ -86,7 +100,7 @@ class CifCleanWorkChain(WorkChain):
         return ToContext(cif_filter=calculation)
 
     def inspect_filter_calculation(self):
-        """Inspect the result of the CifFilterCalculation, verifying that it produced a CifData output node."""
+        """Inspect the result of the `CifFilterCalculation`, verifying that it produced a `CifData` output node."""
         try:
             node = self.ctx.cif_filter
             self.ctx.cif = node.outputs.cif
@@ -95,7 +109,7 @@ class CifCleanWorkChain(WorkChain):
             return self.exit_codes.ERROR_CIF_FILTER_FAILED
 
     def run_select_calculation(self):
-        """Run the CifSelectCalculation on the CifData output node of the CifFilterCalculation."""
+        """Run the `CifSelectCalculation` on the `CifData` output node of the `CifFilterCalculation`."""
         inputs = self.exposed_inputs(CifSelectCalculation, namespace='cif_select')
         inputs.metadata.call_link_label = 'cif_select'
         inputs.cif = self.ctx.cif
@@ -106,7 +120,7 @@ class CifCleanWorkChain(WorkChain):
         return ToContext(cif_select=calculation)
 
     def inspect_select_calculation(self):
-        """Inspect the result of the CifSelectCalculation, verifying that it produced a CifData output node."""
+        """Inspect the result of the `CifSelectCalculation`, verifying that it produced a `CifData` output node."""
         try:
             node = self.ctx.cif_select
             self.ctx.cif = node.outputs.cif
@@ -115,7 +129,7 @@ class CifCleanWorkChain(WorkChain):
             return self.exit_codes.ERROR_CIF_SELECT_FAILED
 
     def should_parse_cif_structure(self):
-        """Return whether the primitive structure should be created from the final cleaned CifData."""
+        """Return whether the primitive structure should be created from the final cleaned `CifData`."""
         return 'group_structure' in self.inputs
 
     def parse_cif_structure(self):
@@ -141,6 +155,7 @@ class CifCleanWorkChain(WorkChain):
             'cif': self.ctx.cif,
             'parse_engine': self.inputs.parse_engine,
             'site_tolerance': self.inputs.site_tolerance,
+            'occupancy_tolerance': self.inputs.occupancy_tolerance,
             'symprec': self.inputs.symprec,
             'metadata': {
                 'call_link_label': 'primitive_structure_from_cif'
@@ -158,15 +173,51 @@ class CifCleanWorkChain(WorkChain):
             self.ctx.exit_code = self.exit_codes(node.exit_status)  # pylint: disable=too-many-function-args
             self.report(self.ctx.exit_code.message)
         else:
+            self.ctx.primitive_structure = structure
+
+    def should_check_chemical_formula(self):
+        """
+        Return whether the composition of the structure should be checked against the chemical formula of the `CifData`.
+        """
+        return (not self.inputs.skip_formula_check) and hasattr(self.ctx, 'primitive_structure')
+
+    def check_chemical_formula(self):
+        """Check the composition of the `StructureData` against the chemical formula of the `CifData`."""
+        from aiida_codtools.calculations.functions.check_formula import check_formula
+
+        parse_inputs = {
+            'cif': self.ctx.cif,
+            'structure': self.ctx.primitive_structure,
+            'metadata': {
+                'call_link_label': 'check_formula'
+            }
+        }
+
+        try:
+            structure, node = check_formula.run_get_node(**parse_inputs)
+        except Exception:  # pylint: disable=broad-except
+            self.ctx.exit_code = self.exit_codes.ERROR_FORMULA_CHECK_FAILED
+            self.report(self.ctx.exit_code.message)
+            return
+
+        if node.is_failed:
+            self.ctx.exit_code = self.exit_codes(node.exit_status)  # pylint: disable=too-many-function-args
+            self.report(self.ctx.exit_code.message)
+        else:
             self.ctx.structure = structure
 
     def results(self):
         """If successfully created, add the cleaned `CifData` and `StructureData` as output nodes to the workchain.
 
         The filter and select calculations were successful, so we return the cleaned CifData node. If the `group_cif`
-        was defined in the inputs, the node is added to it. If the structure should have been parsed, verify that it
-        is was put in the context by the `parse_cif_structure` step and add it to the group and outputs, otherwise
+        was defined in the inputs, the node is added to it.
+        If the structure should have been parsed and the formula check was skipped, verify that `primitive_structure`
+        was put in the context by the `parse_cif_structure` step and add it to the group and outputs, otherwise
         return the finish status that should correspond to the exit code of the `primitive_structure_from_cif` function.
+        If the structure should have been parsed and the formula check was performed, verify that `structure` was put
+        in the context by the `check_chemical_formula` step and add it to the group and outputs, otherwise return the
+        finish status that should correspond to the exit code of the `primitive_structure_from_cif` or the
+        `check_formula` function.
         """
         self.out('cif', self.ctx.cif)
 
@@ -175,7 +226,10 @@ class CifCleanWorkChain(WorkChain):
 
         if 'group_structure' in self.inputs:
             try:
-                structure = self.ctx.structure
+                if self.inputs.skip_formula_check:
+                    structure = self.ctx.primitive_structure
+                else:
+                    structure = self.ctx.structure
             except AttributeError:
                 return self.ctx.exit_code
 

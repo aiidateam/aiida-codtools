@@ -40,6 +40,14 @@ def cmd_cif():
     help='Import only cif files with this number of different species.'
 )
 @click.option(
+    '-e',
+    '--element',
+    type=click.STRING,
+    required=False,
+    multiple=True,
+    help='Elements that must be included (multiple).'
+)
+@click.option(
     '-o', '--skip-partial-occupancies', is_flag=True, default=False, help='Skip entries that have partial occupancies.'
 )
 @click.option(
@@ -75,7 +83,7 @@ def cmd_cif():
 @click.option('-n', '--dry-run', is_flag=True, default=False, help='Perform a dry-run.')
 @decorators.with_dbenv()
 def launch_cif_import(
-    group, database, max_entries, number_species, skip_partial_occupancies, importer_server, importer_db_host,
+    group, database, max_entries, number_species, element, skip_partial_occupancies, importer_server, importer_db_host,
     importer_db_name, importer_db_password, importer_api_url, importer_api_key, count_entries, batch_count, dry_run
 ):
     """Import cif files from various structural databases, store them as CifData nodes and add them to a Group.
@@ -147,10 +155,16 @@ def launch_cif_import(
             # actually apply the filtering in the import here.
             query_parameters['query']['classes'] = 'multinary'
 
+        if element:
+            query_parameters['query']['elements'] = '-'.join(element)
+
     else:
 
         if number_species is not None:
             query_parameters['number_of_elements'] = number_species
+
+        if element:
+            query_parameters['element'] = ' '.join(element)
 
     # Collect the dictionary of not None parameters passed to the launch script and print to screen
     local_vars = locals()
