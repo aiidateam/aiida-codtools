@@ -40,11 +40,14 @@ from . import cmd_launch
     '-p', '--parse-engine', type=click.Choice(['ase', 'pymatgen']), default='pymatgen', show_default=True,
     help='Select the parse engine for parsing the structure from the cleaned cif if requested.')
 @click.option(
+    '-O', '--occupancy-tolerance', type=click.FLOAT, default=1.0, show_default=True,
+    help='If total occupancy of a site is between 1 and occupancy_tolerance, the occupancies will be scaled down to 1.')
+@click.option(
     '-d', '--daemon', is_flag=True, default=False, show_default=True,
     help='Submit the process to the daemon instead of running it locally.')
 @decorators.with_dbenv()
 def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, group_structure, group_workchain, node,
-    max_entries, skip_check, parse_engine, daemon):
+    max_entries, skip_check, parse_engine, occupancy_tolerance, daemon):
     """Run the `CifCleanWorkChain` on the entries in a group with raw imported CifData nodes.
 
     It will use the `cif_filter` and `cif_select` scripts of `cod-tools` to clean the input cif file. Additionally, if
@@ -132,8 +135,7 @@ def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, gro
     })
 
     node_parse_engine = get_input_node(orm.Str, parse_engine)
-    node_site_tolerance = get_input_node(orm.Float, 5E-4)
-    node_symprec = get_input_node(orm.Float, 5E-3)
+    node_occupancy_tolerance = get_input_node(orm.Float, occupancy_tolerance)
 
     for cif in nodes:
 
@@ -155,6 +157,7 @@ def launch_cif_clean(cif_filter, cif_select, group_cif_raw, group_cif_clean, gro
             },
             'parse_engine': node_parse_engine,
             'site_tolerance': node_site_tolerance,
+            'occupancy_tolerance': node_occupancy_tolerance,
             'symprec': node_symprec,
         }
 

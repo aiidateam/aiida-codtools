@@ -9,7 +9,8 @@ from seekpath.hpkot import SymmetryDetectionError
 
 
 @calcfunction
-def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance):
+def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance, occupancy_tolerance):
+    # pylint: disable=too-many-return-statements
     """Attempt to parse the given `CifData` and create a `StructureData` from it.
 
     First the raw CIF file is parsed with the given `parse_engine`. The resulting `StructureData` is then passed through
@@ -21,12 +22,19 @@ def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance):
     :param symprec: a `Float` node with symmetry precision for determining primitive cell in SeeKpath
     :param site_tolerance: a `Float` node with the fractional coordinate distance tolerance for finding overlapping
         sites. This will only be used if the parse_engine is pymatgen
+    :param occupancy_tolerance: a `Float` node with the occupancy tolerance below which occupancies will be scaled down
+        to 1. This will only be used if the parse_engine is pymatgen
     :return: the primitive `StructureData` as determined by SeeKpath
     """
     CifCleanWorkChain = WorkflowFactory('codtools.cif_clean')  # pylint: disable=invalid-name
 
     try:
-        structure = cif.get_structure(converter=parse_engine.value, site_tolerance=site_tolerance.value, store=False)
+        structure = cif.get_structure(
+            converter=parse_engine.value,
+            site_tolerance=site_tolerance.value,
+            occupancy_tolerance=occupancy_tolerance.value,
+            store=False
+        )
     except exceptions.UnsupportedSpeciesError:
         return CifCleanWorkChain.exit_codes.ERROR_CIF_HAS_UNKNOWN_SPECIES
     except InvalidOccupationsError:
