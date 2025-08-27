@@ -58,6 +58,6 @@ def primitive_structure_from_cif(cif, parse_engine, symprec, site_tolerance):
         except KeyError:
             pass
 
-    structure.set_extra_many(extras)
+    structure.base.extras.set_many(extras)
 
     return structure
